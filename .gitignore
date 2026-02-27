@@ -1,5 +1,5 @@
-# Database
-wfm_data.db
+# Database (included for Vercel deployment)
+# wfm_data.db
 
 # Python
 __pycache__/
