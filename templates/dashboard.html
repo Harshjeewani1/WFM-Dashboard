@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WFM Report | RateGain</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts — Manrope (RateGain Brand Font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* ── RateGain Brand Primary ── */
+            --rg-vivid: #8012FF;           /* Vivid Lavender */
+            --rg-navy: #242452;            /* Midnight Navy */
+            /* ── RateGain Brand Secondary ── */
+            --rg-coral: #FF675F;
+            --rg-orange: #F09A45;
+            --rg-yellow: #FCCE0D;
+            --rg-blue: #33ADFF;
+            --rg-dark-purple: #4B139B;
+            --rg-green: #00EF61;
+            /* ── Neutrals ── */
+            --rg-neutral-1: #F7F7FC;
+            --rg-neutral-2: #EFEFEF;
+            --rg-neutral-3: #E8E8EA;
+            --rg-neutral-4: #D9D9E2;
+            /* ── Surface (Dark dashboard) ── */
+            --rg-bg: #0c0e24;
+            --rg-surface: #121436;
+            --rg-surface-2: #181b42;
+            --rg-surface-3: #1e2252;
+            --rg-border: rgba(128,18,255,0.20);
+            --rg-border-light: rgba(128,18,255,0.30);
+            /* ── Semantic ── */
+            --rg-purple: #8012FF;
+            --rg-purple-light: #c9a0ff;
+            --rg-text: #FFFFFF;
+            --rg-text-secondary: #dcdcf0;
+            --rg-text-muted: #a0a0c0;
+            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #4B139B 100%);
+            --rg-gradient-accent: linear-gradient(135deg, #8012FF 0%, #33ADFF 100%);
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.35);
+            --card-shadow-hover: 0 8px 40px rgba(128,18,255,0.22);
+            --glow-purple: 0 0 20px rgba(128,18,255,0.18);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--rg-bg);
+            color: var(--rg-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ─── Top Header ─── */
+        .top-header {
+            background: linear-gradient(90deg, var(--rg-navy) 0%, #2d2d6b 50%, var(--rg-navy) 100%);
+            padding: 14px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--rg-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(12px);
+        }
+        .top-header .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .top-header .logo-section img {
+            height: 36px;
+        }
+        .top-header .logo-section .divider {
+            width: 1px;
+            height: 30px;
+            background: var(--rg-border-light);
+        }
+        .top-header .title-section h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            letter-spacing: 0.4px;
+        }
+        .top-header .title-section p {
+            font-size: 13px;
+            color: var(--rg-purple-light);
+            margin: 2px 0 0 0;
+            letter-spacing: 0.4px;
+            font-weight: 700;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-badge {
+            background: rgba(128,18,255,0.18);
+            border: 1px solid rgba(128,18,255,0.35);
+            color: #d4b0ff;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .header-badge i { margin-right: 5px; }
+
+        /* ─── Tab Navigation ─── */
+        .tab-navigation {
+            background: var(--rg-surface);
+            padding: 12px 20px 12px;
+            border-bottom: 1px solid var(--rg-border);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .tab-navigation::-webkit-scrollbar { height: 3px; }
+        .tab-navigation::-webkit-scrollbar-thumb { background: var(--rg-purple); border-radius: 10px; }
+
+        .tab-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--rg-text-secondary);
+            border: 2px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(128,18,255,0.12);
+            border-color: rgba(128,18,255,0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(128,18,255,0.15);
+        }
+        .tab-btn.active {
+            color: #fff;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(128,18,255,0.25), rgba(75,19,155,0.35));
+            border-color: var(--rg-vivid);
+            box-shadow: 0 0 12px rgba(128,18,255,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        /* ─── Tab Content ─── */
+        .tab-content-area {
+            padding: 20px 25px;
+            min-height: calc(100vh - 130px);
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* ─── Cards ─── */
+        .metric-card {
+            background: var(--rg-surface);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s;
+            border: 1.5px solid var(--rg-border-light);
+        }
+        .metric-card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); border-color: rgba(128,18,255,0.45); }
+        .metric-card .metric-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            margin-bottom: 12px;
+        }
+        .metric-card .metric-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
+        }
+        .metric-card .metric-label {
+            font-size: 11px;
+            color: var(--rg-text-muted);
+            font-weight: 600;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── Section Titles ─── */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(128,18,255,0.25);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i {
+            color: var(--rg-vivid);
+            font-size: 14px;
+        }
+
+        /* ─── Tables ─── */
+        .table-card {
+            background: var(--rg-surface);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1.5px solid var(--rg-border-light);
+            overflow-x: auto;
+        }
+        .table-card table { font-size: 13px; color: var(--rg-text); border-collapse: separate; border-spacing: 0; }
+        .table-card thead th {
+            background: var(--rg-surface-3) !important;
+            color: var(--rg-purple-light) !important;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px !important;
+            border: none !important;
+            border-bottom: 2px solid rgba(128,18,255,0.35) !important;
+            border-right: 1px solid rgba(128,18,255,0.12) !important;
+            white-space: nowrap;
+        }
+        .table-card thead th:last-child { border-right: none !important; }
+        .table-card tbody td {
+            padding: 10px 14px !important;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            border-right: 1px solid rgba(255,255,255,0.04) !important;
+            color: var(--rg-text-secondary);
+            font-weight: 400;
+        }
+        .table-card tbody td:last-child { border-right: none !important; }
+        .table-card tbody td strong { color: #fff; font-weight: 600; }
+        .table-card tbody tr:hover { background: rgba(128,18,255,0.08) !important; }
+        .table-card tbody tr:last-child td { border-bottom: none !important; }
+
+        /* ─── Performance Badges ─── */
+        .perf-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .perf-high { background: rgba(0,239,97,0.18); color: #4afa8a; }
+        .perf-mid { background: rgba(252,206,13,0.18); color: #ffe066; }
+        .perf-low { background: rgba(255,103,95,0.18); color: #ff8a82; }
+
+        .status-active { color: #4afa8a; font-weight: 600; }
+        .status-inactive { color: #ff8a82; font-weight: 600; }
+
+        .text-muted { color: var(--rg-text-muted) !important; }
+
+        /* ─── Charts ─── */
+        .chart-card {
+            background: var(--rg-surface);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1.5px solid var(--rg-border-light);
+        }
+        .chart-card canvas { max-height: 350px; }
+
+        /* ─── Filter Bar ─── */
+        .filter-bar {
+            background: var(--rg-surface);
+            border-radius: 14px;
+            padding: 16px 20px;
+            box-shadow: var(--card-shadow);
+            border: 1.5px solid var(--rg-border-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-bar label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--rg-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0;
+        }
+        .filter-bar select, .filter-bar input {
+            font-size: 13px;
+            border: 1px solid var(--rg-border-light);
+            border-radius: 8px;
+            padding: 6px 12px;
+            min-width: 180px;
+            background: var(--rg-surface-2);
+            color: var(--rg-text);
+        }
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: var(--rg-purple);
+            box-shadow: 0 0 0 2px rgba(128,18,255,0.2);
+            outline: none;
+        }
+        .filter-bar select option { background: var(--rg-surface-2); color: var(--rg-text); }
+        .filter-bar .btn-outline-secondary {
+            color: var(--rg-text-secondary);
+            border-color: var(--rg-border-light);
+        }
+        .filter-bar .btn-outline-secondary:hover {
+            background: var(--rg-purple);
+            border-color: var(--rg-purple);
+            color: #fff;
+        }
+
+        /* ─── Notes ─── */
+        .note-box {
+            background: rgba(252,206,13,0.08);
+            border-left: 4px solid var(--rg-yellow);
+            border: 1.5px solid rgba(252,206,13,0.15);
+            border-left: 4px solid var(--rg-yellow);
+            border-radius: 0 8px 8px 0;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #ffe066;
+            margin-top: 15px;
+        }
+        .note-box i { margin-right: 6px; color: var(--rg-yellow); }
+
+        /* ─── Uptime Bar ─── */
+        .uptime-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--rg-surface-3);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .uptime-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        /* ─── Loading ─── */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--rg-text-secondary);
+        }
+        .loading-spinner i { font-size: 28px; color: var(--rg-purple); }
+
+        /* ─── TA Team Placeholder ─── */
+        .placeholder-box {
+            background: var(--rg-surface);
+            border-radius: 14px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            border: 1.5px solid var(--rg-border-light);
+        }
+        .placeholder-box i {
+            font-size: 48px;
+            color: var(--rg-text-muted);
+            margin-bottom: 15px;
+        }
+        .placeholder-box h4 { color: #fff; font-weight: 700; }
+        .placeholder-box p { color: var(--rg-text-secondary); font-size: 13px; }
+
+        /* ─── Badges ─── */
+        .badge.bg-secondary { background: var(--rg-surface-3) !important; color: var(--rg-blue); border: 1px solid var(--rg-border-light); }
+
+        /* ─── Expandable Manager Table ─── */
+        .manager-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .manager-table th {
+            background: var(--rg-surface-3) !important;
+            color: var(--rg-purple-light) !important;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px !important;
+            border: none !important;
+            border-bottom: 2px solid rgba(128,18,255,0.35) !important;
+            border-right: 1px solid rgba(128,18,255,0.12) !important;
+            white-space: nowrap;
+        }
+        .manager-table th:last-child { border-right: none !important; }
+        .manager-row {
+            cursor: pointer;
+            background: var(--rg-surface-2);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s;
+        }
+        .manager-row:hover { background: rgba(128,18,255,0.08); }
+        .manager-row td {
+            padding: 12px 14px !important;
+            font-weight: 600;
+            font-size: 13px;
+            vertical-align: middle;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            border-right: 1px solid rgba(255,255,255,0.04) !important;
+        }
+        .manager-row td:last-child { border-right: none !important; }
+        .manager-row .expand-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            background: var(--rg-purple);
+            color: white;
+            font-size: 11px;
+            margin-right: 10px;
+            transition: transform 0.3s;
+        }
+        .manager-row.expanded .expand-icon { transform: rotate(90deg); background: var(--rg-coral); }
+        .manager-row .mgr-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .emp-details-row { display: none; }
+        .emp-details-row.visible { display: table-row; }
+        .emp-details-row td { padding: 0 !important; border: none !important; }
+        .emp-sub-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0;
+            background: var(--rg-surface);
+        }
+        .emp-sub-table thead th {
+            background: rgba(128,18,255,0.12) !important;
+            color: var(--rg-purple-light) !important;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 8px 10px !important;
+            border-bottom: 1px solid rgba(128,18,255,0.25) !important;
+            border-right: 1px solid rgba(128,18,255,0.10) !important;
+        }
+        .emp-sub-table thead th:last-child { border-right: none !important; }
+        .emp-sub-table tbody td {
+            padding: 7px 10px !important;
+            font-size: 12.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+            border-right: 1px solid rgba(255,255,255,0.03) !important;
+            vertical-align: middle;
+            color: var(--rg-text-secondary);
+        }
+        .emp-sub-table tbody td:last-child { border-right: none !important; }
+        .emp-sub-table tbody td strong { color: #fff; font-weight: 600; }
+        .emp-sub-table tbody tr:hover { background: rgba(128,18,255,0.06) !important; }
+        .emp-sub-table tbody tr:last-child td { border-bottom: 2px solid var(--rg-purple) !important; }
+        .manager-summary-stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .manager-summary-stats .mini-stat {
+            background: var(--rg-surface-2);
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--rg-text-secondary);
+        }
+        .manager-summary-stats .mini-stat span { font-weight: 700; color: var(--rg-text); }
+
+        /* ══════════════════════════════════════════════════
+           DARK THEME OVERRIDES — Bootstrap & DataTables
+           Kill ALL white backgrounds from libraries
+           ══════════════════════════════════════════════════ */
+
+        /* Bootstrap Table — force dark on every element */
+        .table { --bs-table-bg: transparent; --bs-table-color: var(--rg-text-secondary); --bs-table-border-color: rgba(255,255,255,0.05); --bs-table-striped-bg: rgba(128,18,255,0.03); --bs-table-hover-bg: rgba(128,18,255,0.07); --bs-table-hover-color: #fff; }
+        .table > :not(caption) > * > * { background-color: transparent !important; box-shadow: none !important; }
+        .table > thead { background: var(--rg-surface-3); }
+        .table > tbody > tr { background: transparent; }
+        .table-sm > :not(caption) > * > * { padding: 0; }
+
+        /* DataTables Wrapper — dark everywhere */
+        .dataTables_wrapper { color: var(--rg-text-secondary); }
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: var(--rg-text-muted) !important;
+            font-size: 12px;
+        }
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            background: var(--rg-surface-2) !important;
+            color: var(--rg-text) !important;
+            border: 1px solid var(--rg-border-light) !important;
+            border-radius: 6px !important;
+            padding: 4px 8px !important;
+            outline: none;
+        }
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--rg-purple) !important;
+            box-shadow: 0 0 0 2px rgba(128,18,255,0.2) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            background: var(--rg-surface-2) !important;
+            color: var(--rg-text-secondary) !important;
+            border: 1px solid var(--rg-border) !important;
+            border-radius: 6px !important;
+            margin: 0 2px;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--rg-purple) !important;
+            color: #fff !important;
+            border-color: var(--rg-purple) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--rg-purple) !important;
+            color: #fff !important;
+            border-color: var(--rg-purple) !important;
+            font-weight: 700;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            background: var(--rg-surface-3) !important;
+            color: var(--rg-text-muted) !important;
+            border-color: var(--rg-border) !important;
+            opacity: 0.5;
+        }
+
+        /* Bootstrap Inputs & Selects — force dark */
+        .form-control, .form-select, input, select, textarea {
+            background-color: var(--rg-surface-2) !important;
+            color: var(--rg-text) !important;
+            border-color: var(--rg-border-light) !important;
+        }
+        .form-control:focus, .form-select:focus, input:focus, select:focus {
+            background-color: var(--rg-surface-2) !important;
+            color: var(--rg-text) !important;
+            border-color: var(--rg-purple) !important;
+            box-shadow: 0 0 0 2px rgba(128,18,255,0.2) !important;
+        }
+
+        /* Bootstrap Buttons — dark variants */
+        .btn { font-family: 'Manrope', sans-serif; }
+        .btn-outline-secondary {
+            color: var(--rg-text-secondary) !important;
+            border-color: var(--rg-border-light) !important;
+            background: transparent !important;
+        }
+        .btn-outline-secondary:hover {
+            background: var(--rg-purple) !important;
+            border-color: var(--rg-purple) !important;
+            color: #fff !important;
+        }
+
+        /* Bootstrap Dropdowns */
+        .dropdown-menu {
+            background: var(--rg-surface-2) !important;
+            border: 1px solid var(--rg-border-light) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+        }
+        .dropdown-item {
+            color: var(--rg-text-secondary) !important;
+        }
+        .dropdown-item:hover, .dropdown-item:focus {
+            background: rgba(128,18,255,0.12) !important;
+            color: #fff !important;
+        }
+
+        /* Bootstrap Cards (if any leak through) */
+        .card {
+            background: var(--rg-surface) !important;
+            border-color: var(--rg-border) !important;
+            color: var(--rg-text) !important;
+        }
+
+        /* Bootstrap Modals */
+        .modal-content {
+            background: var(--rg-surface) !important;
+            border: 1px solid var(--rg-border-light) !important;
+            color: var(--rg-text) !important;
+        }
+
+        /* Scrollbars — system-wide dark */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--rg-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--rg-surface-3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--rg-purple); }
+
+        /* Tooltip override */
+        .tooltip-inner { background: var(--rg-surface-2); color: var(--rg-text); }
+
+        /* Sorting icons in DataTables — make them visible */
+        table.dataTable thead .sorting::before,
+        table.dataTable thead .sorting::after,
+        table.dataTable thead .sorting_asc::before,
+        table.dataTable thead .sorting_asc::after,
+        table.dataTable thead .sorting_desc::before,
+        table.dataTable thead .sorting_desc::after {
+            opacity: 0.5;
+        }
+        table.dataTable thead .sorting_asc::before,
+        table.dataTable thead .sorting_desc::after { opacity: 1; }
+
+        /* DataTables no-data row */
+        .dataTables_empty { color: var(--rg-text-muted) !important; background: transparent !important; }
+
+        /* Selection highlight */
+        ::selection { background: rgba(128,18,255,0.35); color: #fff; }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 768px) {
+            .top-header { padding: 10px 15px; }
+            .tab-content-area { padding: 15px; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ TOP HEADER ═══════════════ -->
+<div class="top-header">
+    <div class="logo-section">
+        <img src="{{ url_for('static', filename='img/RateGain-Logo.jpg') }}" alt="RateGain">
+        <div class="divider"></div>
+        <div class="title-section">
+            <h1>WFM Report</h1>
+            <p>H1 FY26 & Q3'26</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <span class="header-badge"><i class="fas fa-lock"></i> Secured Data</span>
+        <span class="header-badge"><i class="fas fa-database"></i> Internal Only</span>
+        <span class="header-badge"><i class="fas fa-calendar"></i> FY 2025-26</span>
+    </div>
+</div>
+
+<!-- ═══════════════ TAB NAVIGATION ═══════════════ -->
+<div class="tab-navigation">
+    <button class="tab-btn active" data-tab="cost_summary"><i class="fas fa-dollar-sign me-1"></i>Cost Summary</button>
+    <button class="tab-btn" data-tab="dadk_pivot"><i class="fas fa-chart-pie me-1"></i>DK Team's MoM Trend</button>
+    <button class="tab-btn" data-tab="productivity_emp"><i class="fas fa-chart-line me-1"></i>Productivity (Emp)</button>
+    <button class="tab-btn" data-tab="adara_devops"><i class="fas fa-server me-1"></i>Adara-Devops</button>
+    <button class="tab-btn" data-tab="devops_shared"><i class="fas fa-shield-alt me-1"></i>DevOps – Shared Services</button>
+    <button class="tab-btn" data-tab="it_helpdesk"><i class="fas fa-headset me-1"></i>IT HelpDesk</button>
+    <button class="tab-btn" data-tab="ta_team"><i class="fas fa-user-tie me-1"></i>TA Team</button>
+    <button class="tab-btn" data-tab="soho_team"><i class="fas fa-hotel me-1"></i>SoHo Team</button>
+    <button class="tab-btn" data-tab="customer_exp"><i class="fas fa-star me-1"></i>Customer Experience</button>
+</div>
+
+<!-- ═══════════════ TAB CONTENT ═══════════════ -->
+<div class="tab-content-area">
+
+    <!-- ========== COST SUMMARY ========== -->
+    <div class="tab-pane active" id="cost_summary">
+        <div class="row g-3 mb-4" id="costMetrics"></div>
+        <div class="section-title"><i class="fas fa-table"></i> Team-wise Cost Summary (FY 25-26 in USD)</div>
+        <div class="table-card">
+            <table class="table table-sm table-hover mb-0" id="costTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="row g-3 mt-3">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <canvas id="costPerEmpChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="note-box mt-3">
+            <i class="fas fa-info-circle"></i>
+            Cost is excluding the team Manager. Joiners and Leavers cost has been prorated. Sojern Employees have not been included here.
+        </div>
+    </div>
+
+    <!-- ========== DEEPAK KAPOOR TEAM MoM TREND ========== -->
+    <div class="tab-pane" id="dadk_pivot">
+        <div class="row g-3 mb-4" id="dadkMetrics"></div>
+        <div class="section-title"><i class="fas fa-money-bill-wave"></i> CTC Trend — Deepak Kapoor & Deepak Aneja's Team</div>
+        <div class="table-card mb-4">
+            <table class="table table-sm table-hover mb-0" id="ctcTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="chart-card"><canvas id="ctcChart"></canvas></div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="joinersChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-users"></i> Head Count Trend</div>
+        <div class="table-card mb-3">
+            <table class="table table-sm table-hover mb-0" id="hcTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-card"><canvas id="hcChart"></canvas></div>
+        <div class="note-box mt-3">
+            <i class="fas fa-info-circle"></i> 25 New Joiners in October, November, December Month
+        </div>
+    </div>
+
+    <!-- ========== PRODUCTIVITY EMP ========== -->
+    <div class="tab-pane" id="productivity_emp">
+        <div class="filter-bar">
+            <div>
+                <label>Team</label><br>
+                <select id="prodTeamFilter" onchange="loadProductivity()">
+                    <option value="">All Teams</option>
+                </select>
+            </div>
+            <div>
+                <label>Manager</label><br>
+                <select id="prodManagerFilter" onchange="loadProductivity()">
+                    <option value="">All Managers</option>
+                </select>
+            </div>
+            <div>
+                <label>Status</label><br>
+                <select id="prodStatusFilter" onchange="loadProductivity()">
+                    <option value="">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div style="margin-left:auto">
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleAllManagers(true)" title="Expand All">
+                    <i class="fas fa-expand-arrows-alt"></i> Expand All
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-1" onclick="toggleAllManagers(false)" title="Collapse All">
+                    <i class="fas fa-compress-arrows-alt"></i> Collapse All
+                </button>
+            </div>
+        </div>
+        <div class="row g-3 mb-4" id="prodMetrics"></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="prodTrendChart"></canvas></div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="prodDistChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-sitemap"></i> Manager-Level Productivity — Click to expand employees</div>
+        <div class="table-card">
+            <table class="manager-table" id="prodManagerTable">
+                <thead>
+                    <tr>
+                        <th style="width:30px"></th>
+                        <th>Manager</th>
+                        <th>Team</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Active</th>
+                        <th class="text-center">Inactive</th>
+                        <th class="text-center">Avg Q1</th>
+                        <th class="text-center">Avg Q2</th>
+                        <th class="text-center">Avg Q3</th>
+                        <th class="text-center">Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="prodManagerBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== ADARA DEVOPS ========== -->
+    <div class="tab-pane" id="adara_devops">
+        <div class="filter-bar">
+            <div>
+                <label>Location</label><br>
+                <select id="adaraLocFilter" onchange="loadAdaraDevops()">
+                    <option value="">All Locations</option>
+                    <option value="IND">India (IND)</option>
+                    <option value="USA">USA</option>
+                    <option value="TUR">Turkey (TUR)</option>
+                </select>
+            </div>
+        </div>
+        <div class="row g-3 mb-4" id="adaraMetrics"></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="chart-card"><canvas id="adaraUtilChart"></canvas></div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="adaraLocChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-server"></i> Adara DevOps Team — Utilisation</div>
+        <div class="table-card">
+            <table class="table table-sm table-hover mb-0" id="adaraTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== DEVOPS SHARED SERVICES ========== -->
+    <div class="tab-pane" id="devops_shared">
+        <div class="section-title"><i class="fas fa-shield-alt"></i> Overall Product Health — Up Time</div>
+        <div class="row g-3 mb-4" id="uptimeCards"></div>
+        <div class="table-card mb-4">
+            <table class="table table-sm table-hover mb-0" id="uptimeTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div class="section-title"><i class="fas fa-ticket-alt"></i> Product-Wise Tickets</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-7">
+                <div class="chart-card"><canvas id="ticketsChart"></canvas></div>
+            </div>
+            <div class="col-md-5">
+                <div class="chart-card"><canvas id="ticketsPieChart"></canvas></div>
+            </div>
+        </div>
+        <div class="table-card">
+            <table class="table table-sm table-hover mb-0" id="ticketsTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== IT HELPDESK ========== -->
+    <div class="tab-pane" id="it_helpdesk">
+        <div class="row g-3 mb-4" id="helpdeskMetrics"></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="helpdeskTicketChart"></canvas></div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="helpdeskPerEngChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-headset"></i> Monthly IT HelpDesk Data</div>
+        <div class="table-card">
+            <table class="table table-sm table-hover mb-0" id="helpdeskTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div id="helpdeskNotes"></div>
+    </div>
+
+    <!-- ========== TA TEAM ========== -->
+    <div class="tab-pane" id="ta_team">
+        <div class="row g-3 mb-4" id="taMetrics"></div>
+
+        <!-- Row 1: New vs Replacement Open Positions | New vs Replacements % | Offered New vs Replacement % -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="taOpenPosChart"></canvas></div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="taNewVsReplChart"></canvas></div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="taOfferedPctChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Row 2: Offered from Closing Position | Leader Wise Open Positions -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-5">
+                <div class="chart-card"><canvas id="taOfferedClosingChart"></canvas></div>
+            </div>
+            <div class="col-md-7">
+                <div class="chart-card"><canvas id="taLeaderChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Row 3: TA Partner Table | Performance Chart -->
+        <div class="section-title"><i class="fas fa-user-tie"></i> TA Partner Performance</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-5">
+                <div class="table-card">
+                    <table class="table table-sm table-hover mb-0" id="taPartnerTable">
+                        <thead></thead><tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="chart-card"><canvas id="taPartnerChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SOHO TEAM ========== -->
+    <div class="tab-pane" id="soho_team">
+        <div class="filter-bar">
+            <div>
+                <label>Monitor</label><br>
+                <select id="sohoMonitorFilter" onchange="loadSoho()">
+                    <option value="">All Monitors</option>
+                </select>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-desktop"></i> SoHo Monitoring Team — Index Scores</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="chart-card"><canvas id="sohoMonitorChart"></canvas></div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card"><canvas id="sohoAvgChart"></canvas></div>
+            </div>
+        </div>
+        <div class="table-card mb-4">
+            <table class="table table-sm table-hover mb-0" id="sohoMonitorTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+
+        <div class="section-title"><i class="fas fa-handshake"></i> Client Success — SoHo</div>
+        <div class="table-card mb-4">
+            <table class="table table-sm table-hover mb-0" id="sohoCSTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-card mb-4"><canvas id="sohoCSChart"></canvas></div>
+
+        <div class="section-title"><i class="fas fa-bullhorn"></i> Social Content Strategy Team</div>
+        <div class="table-card mb-3">
+            <table class="table table-sm table-hover mb-0" id="sohoSCTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========== CUSTOMER EXPERIENCE ========== -->
+    <div class="tab-pane" id="customer_exp">
+        <div class="row g-3 mb-4" id="ceMetrics"></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="ceProductivityChart"></canvas></div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card"><canvas id="ceQualityChart"></canvas></div>
+            </div>
+        </div>
+        <div class="section-title"><i class="fas fa-star"></i> Customer Experience — Tushar's Team</div>
+        <div class="table-card">
+            <table class="table table-sm table-hover mb-0" id="ceTable">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+        <div id="ceNotes"></div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+// Register datalabels plugin globally
+Chart.register(ChartDataLabels);
+
+// ═══════════════ GLOBALS ═══════════════
+const COLORS = {
+    primary: '#8012FF',       // Vivid Lavender
+    secondary: '#4B139B',     // Dark Purple
+    accent: '#33ADFF',        // Blue
+    light: '#a95dff',         // Purple Light
+    green: '#00EF61',         // Green
+    orange: '#F09A45',        // Orange
+    yellow: '#FCCE0D',        // Yellow
+    coral: '#FF675F',         // Coral
+    red: '#FF675F',           // Coral (alias)
+    blue: '#33ADFF',          // Blue
+    teal: '#00EF61',          // Green (alias)
+    purple: '#8012FF',        // Vivid Lavender
+    navy: '#242452',          // Midnight Navy
+    palette: ['#8012FF','#33ADFF','#00EF61','#FF675F','#F09A45','#FCCE0D','#4B139B','#a95dff','#33ADFF','#00EF61','#FF675F','#F09A45']
+};
+
+// Chart.js dark mode defaults with RateGain theme
+Chart.defaults.color = '#dcdcf0';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.plugins.title.color = '#FFFFFF';
+Chart.defaults.plugins.legend.labels.color = '#dcdcf0';
+Chart.defaults.scale = Chart.defaults.scale || {};
+Chart.defaults.font = Chart.defaults.font || {};
+Chart.defaults.font.family = "'Manrope', sans-serif";
+
+// Global datalabels defaults — numbers always visible on charts
+Chart.defaults.plugins.datalabels = {
+    color: '#FFFFFF',
+    font: { weight: '600', size: 11, family: "'Manrope', sans-serif" },
+    display: 'auto',       // auto-hide overlapping labels
+    anchor: 'end',
+    align: 'end',
+    offset: 2,
+    padding: 2,
+};
+
+let chartInstances = {};
+
+function destroyChart(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function fmtCurrency(val) {
+    if (val == null) return '-';
+    return '$' + Number(val).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function fmtNum(val, dec=2) {
+    if (val == null || val === '') return '-';
+    return Number(val).toLocaleString('en-US', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+}
+
+function fmtPct(val) {
+    if (val == null) return '-';
+    return (Number(val) * 100).toFixed(2) + '%';
+}
+
+function perfBadge(val) {
+    if (val == null || val === '-' || val === '') return '<span class="text-muted">-</span>';
+    let v = Number(val);
+    if (v >= 1.0) return `<span class="perf-badge perf-high">${v.toFixed(2)}</span>`;
+    if (v >= 0.85) return `<span class="perf-badge perf-mid">${v.toFixed(2)}</span>`;
+    return `<span class="perf-badge perf-low">${v.toFixed(2)}</span>`;
+}
+
+function perfBadgePct(val) {
+    if (val == null || val === '-' || val === '') return '<span class="text-muted">-</span>';
+    let v = Number(val);
+    let pct = (v * 100).toFixed(1) + '%';
+    if (v >= 1.0) return `<span class="perf-badge perf-high">${pct}</span>`;
+    if (v >= 0.85) return `<span class="perf-badge perf-mid">${pct}</span>`;
+    return `<span class="perf-badge perf-low">${pct}</span>`;
+}
+
+function statusBadge(val) {
+    if (!val) return '-';
+    return val === 'Active' ? `<span class="status-active"><i class="fas fa-circle" style="font-size:7px"></i> Active</span>`
+                            : `<span class="status-inactive"><i class="fas fa-circle" style="font-size:7px"></i> Inactive</span>`;
+}
+
+// ═══════════════ TAB SWITCHING ═══════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById(this.dataset.tab).classList.add('active');
+        // Load data on first click
+        const tab = this.dataset.tab;
+        if (tab === 'cost_summary' && !window._costLoaded) { loadCostSummary(); window._costLoaded = true; }
+        if (tab === 'dadk_pivot' && !window._dadkLoaded) { loadDADK(); window._dadkLoaded = true; }
+        if (tab === 'productivity_emp' && !window._prodLoaded) { loadProductivityFilters(); loadProductivity(); window._prodLoaded = true; }
+        if (tab === 'adara_devops' && !window._adaraLoaded) { loadAdaraDevops(); window._adaraLoaded = true; }
+        if (tab === 'devops_shared' && !window._devopsLoaded) { loadDevopsShared(); window._devopsLoaded = true; }
+        if (tab === 'it_helpdesk' && !window._hdLoaded) { loadITHelpdesk(); window._hdLoaded = true; }
+        if (tab === 'ta_team' && !window._taLoaded) { loadTATeam(); window._taLoaded = true; }
+        if (tab === 'soho_team' && !window._sohoLoaded) { loadSohoFilters(); loadSoho(); window._sohoLoaded = true; }
+        if (tab === 'customer_exp' && !window._ceLoaded) { loadCustomerExp(); window._ceLoaded = true; }
+    });
+});
+
+// ═══════════════ 1. COST SUMMARY ═══════════════
+async function loadCostSummary() {
+    const data = await fetch('/api/cost_summary').then(r=>r.json());
+
+    // Metrics
+    const totalEmps = data.reduce((s,d) => s + (d.num_employees_q3||0), 0);
+    const totalCostQ3 = data.reduce((s,d) => s + (d.cumulative_cost_q3||0), 0);
+    const totalCostH1 = data.reduce((s,d) => s + (d.cumulative_cost_h1||0), 0);
+    const avgCostPerEmp = totalCostQ3 / totalEmps;
+
+    document.getElementById('costMetrics').innerHTML = `
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-users"></i></div>
+            <div class="metric-value">${totalEmps}</div>
+            <div class="metric-label">Total Employees (Q3)</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-dollar-sign"></i></div>
+            <div class="metric-value">${fmtCurrency(totalCostQ3)}</div>
+            <div class="metric-label">Total Cost Q3</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-chart-bar"></i></div>
+            <div class="metric-value">${fmtCurrency(totalCostH1)}</div>
+            <div class="metric-label">Cumulative Cost H1</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-user-tag"></i></div>
+            <div class="metric-value">${fmtCurrency(avgCostPerEmp)}</div>
+            <div class="metric-label">Avg Cost/Employee (Q3)</div>
+        </div></div>
+    `;
+
+    // Table
+    const thead = `<tr><th>#</th><th>Team Manager</th><th>Product/Team</th><th>Leader</th><th>Emp Q2</th><th>Emp Q3</th><th>Cost Q3 (USD)</th><th>Cost H1 (USD)</th><th>Cost Q2 (USD)</th><th>Cost Q1 (USD)</th><th>Cost/Emp Q3</th><th>Cost/Emp Q2</th></tr>`;
+    let tbody = '';
+    data.forEach(d => {
+        tbody += `<tr>
+            <td>${d.serial_no}</td>
+            <td><strong>${d.team_manager||''}</strong></td>
+            <td>${d.product_team||''}</td>
+            <td>${d.leader||''}</td>
+            <td class="text-center">${d.num_employees_q2||'-'}</td>
+            <td class="text-center">${d.num_employees_q3||'-'}</td>
+            <td class="text-end">${fmtCurrency(d.cumulative_cost_q3)}</td>
+            <td class="text-end">${fmtCurrency(d.cumulative_cost_h1)}</td>
+            <td class="text-end">${fmtCurrency(d.cumulative_cost_q2)}</td>
+            <td class="text-end">${fmtCurrency(d.cumulative_cost_q1)}</td>
+            <td class="text-end">${fmtCurrency(d.cost_per_emp_q3)}</td>
+            <td class="text-end">${fmtCurrency(d.cost_per_emp_q2)}</td>
+        </tr>`;
+    });
+    document.querySelector('#costTable thead').innerHTML = thead;
+    document.querySelector('#costTable tbody').innerHTML = tbody;
+
+    // Charts
+    destroyChart('costChart');
+    chartInstances['costChart'] = new Chart(document.getElementById('costChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.product_team||''),
+            datasets: [
+                { label: 'Q3 Cost', data: data.map(d => d.cumulative_cost_q3), backgroundColor: COLORS.secondary+'cc' },
+                { label: 'Q2 Cost', data: data.map(d => d.cumulative_cost_q2), backgroundColor: COLORS.accent+'cc' },
+                { label: 'Q1 Cost', data: data.map(d => d.cumulative_cost_q1), backgroundColor: COLORS.light+'cc' }
+            ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Cumulative Cost by Team (USD)', font:{weight:'bold'} },
+            datalabels: { display: false } },
+            scales: { x: { ticks: { font: {size:9}, maxRotation:45 } } } }
+    });
+
+    destroyChart('costPerEmpChart');
+    chartInstances['costPerEmpChart'] = new Chart(document.getElementById('costPerEmpChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.product_team||''),
+            datasets: [
+                { label: 'Q3 Cost/Emp', data: data.map(d => d.cost_per_emp_q3), backgroundColor: COLORS.primary+'cc' },
+                { label: 'Q2 Cost/Emp', data: data.map(d => d.cost_per_emp_q2), backgroundColor: COLORS.orange+'cc' }
+            ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Cost per Employee by Team (USD)', font:{weight:'bold'} },
+            datalabels: { display: false } },
+            scales: { x: { ticks: { font: {size:9}, maxRotation:45 } } } }
+    });
+}
+
+// ═══════════════ 2. DA&DK PIVOT ═══════════════
+async function loadDADK() {
+    const [ctc, hc, joiners] = await Promise.all([
+        fetch('/api/dadk_ctc').then(r=>r.json()),
+        fetch('/api/dadk_headcount').then(r=>r.json()),
+        fetch('/api/dadk_new_joiners').then(r=>r.json()),
+    ]);
+
+    const months = ['Apr-25','May-25','Jun-25','Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26'];
+    const fields = ['apr_25','may_25','jun_25','jul_25','aug_25','sep_25','oct_25','nov_25','dec_25','jan_26','feb_26','mar_26'];
+
+    // Metrics
+    const grand = hc.find(h => h.row_label === 'Grand Total') || {};
+    const grandCtc = ctc.find(c => c.row_label === 'Grand Total') || {};
+    document.getElementById('dadkMetrics').innerHTML = `
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-users"></i></div>
+            <div class="metric-value">${grand.mar_26||401}</div>
+            <div class="metric-label">Current Headcount (Mar'26)</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-arrow-down"></i></div>
+            <div class="metric-value">${(grand.apr_25||409) - (grand.mar_26||401)}</div>
+            <div class="metric-label">Net HC Change (Apr→Mar)</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-money-bill"></i></div>
+            <div class="metric-value">${fmtCurrency(grandCtc.mar_26)}</div>
+            <div class="metric-label">Total CTC (Mar'26)</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-user-plus"></i></div>
+            <div class="metric-value">${joiners.find(j=>j.designation==='Total')?.headcount||24}</div>
+            <div class="metric-label">New Joiners (Q3)</div>
+        </div></div>
+    `;
+
+    // CTC Table
+    let ctcHead = '<tr><th>Team</th>' + months.map(m=>`<th>${m}</th>`).join('') + '<th>Variance</th></tr>';
+    let ctcBody = ctc.map(d => '<tr><td><strong>'+d.row_label+'</strong></td>' +
+        fields.map(f => `<td class="text-end">${fmtCurrency(d[f])}</td>`).join('') +
+        `<td class="text-end" style="color:${(d.variance||0)>=0?COLORS.green:COLORS.red}">${fmtCurrency(d.variance)}</td></tr>`
+    ).join('');
+    document.querySelector('#ctcTable thead').innerHTML = ctcHead;
+    document.querySelector('#ctcTable tbody').innerHTML = ctcBody;
+
+    // HC Table
+    let hcHead = '<tr><th>Team</th>' + months.map(m=>`<th>${m}</th>`).join('') + '</tr>';
+    let hcBody = hc.map(d => '<tr><td><strong>'+d.row_label+'</strong></td>' +
+        fields.map(f => `<td class="text-center">${d[f]||'-'}</td>`).join('') + '</tr>'
+    ).join('');
+    document.querySelector('#hcTable thead').innerHTML = hcHead;
+    document.querySelector('#hcTable tbody').innerHTML = hcBody;
+
+    // CTC Chart (Apr-25 to Dec-25 only — exclude Jan-Mar projections)
+    destroyChart('ctcChart');
+    const ctcChartMonths = months.slice(0, 9);       // Apr-25 … Dec-25
+    const ctcChartFields = fields.slice(0, 9);
+    const nonGrand = ctc.filter(c => c.row_label !== 'Grand Total');
+    chartInstances['ctcChart'] = new Chart(document.getElementById('ctcChart'), {
+        type: 'line',
+        data: {
+            labels: ctcChartMonths,
+            datasets: nonGrand.map((d,i) => ({
+                label: d.row_label,
+                data: ctcChartFields.map(f => d[f]),
+                borderColor: COLORS.palette[i],
+                backgroundColor: COLORS.palette[i]+'33',
+                fill: true, tension: 0.3, pointRadius: 3
+            }))
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'CTC Trend by Team Leader', font:{weight:'bold'} },
+            datalabels: { display: false } } }
+    });
+
+    // HC Chart
+    destroyChart('hcChart');
+    chartInstances['hcChart'] = new Chart(document.getElementById('hcChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: hc.filter(h=>h.row_label!=='Grand Total').map((d,i) => ({
+                label: d.row_label,
+                data: fields.map(f => d[f]),
+                borderColor: COLORS.palette[i],
+                borderWidth: 2, tension: 0.3, pointRadius: 4
+            }))
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Headcount Trend by Team Leader', font:{weight:'bold'} },
+            datalabels: { align: 'top', font: { size: 10 }, formatter: v => v != null ? Math.round(v) : '' } } }
+    });
+
+    // Joiners Chart
+    destroyChart('joinersChart');
+    const jData = joiners.filter(j => j.designation !== 'Total');
+    chartInstances['joinersChart'] = new Chart(document.getElementById('joinersChart'), {
+        type: 'doughnut',
+        data: {
+            labels: jData.map(j => j.designation),
+            datasets: [{ data: jData.map(j => j.headcount), backgroundColor: COLORS.palette }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'New Joiners by Designation', font:{weight:'bold'} },
+            legend: { position: 'bottom', labels: { font:{size:9} } },
+            datalabels: { anchor: 'center', align: 'center', font: { size: 11, weight: '700' }, formatter: (v) => v } } }
+    });
+}
+
+// ═══════════════ 3. PRODUCTIVITY EMP (Manager-Level Expandable) ═══════════════
+async function loadProductivityFilters() {
+    const [teams, managers] = await Promise.all([
+        fetch('/api/productivity_teams').then(r=>r.json()),
+        fetch('/api/productivity_managers').then(r=>r.json()),
+    ]);
+    const teamSel = document.getElementById('prodTeamFilter');
+    teams.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; teamSel.appendChild(o); });
+    const mgrSel = document.getElementById('prodManagerFilter');
+    managers.forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; mgrSel.appendChild(o); });
+}
+
+function trendArrow(q1, q2, q3) {
+    // Show trend based on Q2→Q3 direction in percentage points
+    if (q3 == null || q2 == null) return '<span class="text-muted">—</span>';
+    let delta = ((q3 - q2) * 100).toFixed(1);
+    if (q3 > q2) return `<span style="color:${COLORS.green};font-weight:700"><i class="fas fa-arrow-up"></i> +${delta}pp</span>`;
+    if (q3 < q2) return `<span style="color:${COLORS.red};font-weight:700"><i class="fas fa-arrow-down"></i> ${delta}pp</span>`;
+    return `<span style="color:${COLORS.orange};font-weight:600"><i class="fas fa-equals"></i> Flat</span>`;
+}
+
+function toggleManager(mgrIdx) {
+    const mgrRow = document.getElementById('mgr-row-' + mgrIdx);
+    const detailRow = document.getElementById('mgr-detail-' + mgrIdx);
+    if (mgrRow.classList.contains('expanded')) {
+        mgrRow.classList.remove('expanded');
+        detailRow.classList.remove('visible');
+    } else {
+        mgrRow.classList.add('expanded');
+        detailRow.classList.add('visible');
+    }
+}
+
+function toggleAllManagers(expand) {
+    document.querySelectorAll('.manager-row').forEach(row => {
+        const idx = row.id.replace('mgr-row-','');
+        const detailRow = document.getElementById('mgr-detail-' + idx);
+        if (expand) {
+            row.classList.add('expanded');
+            detailRow.classList.add('visible');
+        } else {
+            row.classList.remove('expanded');
+            detailRow.classList.remove('visible');
+        }
+    });
+}
+
+async function loadProductivity() {
+    const team = document.getElementById('prodTeamFilter').value;
+    const manager = document.getElementById('prodManagerFilter').value;
+    const status = document.getElementById('prodStatusFilter').value;
+    const params = new URLSearchParams();
+    if (team) params.set('team', team);
+    if (manager) params.set('manager', manager);
+    if (status) params.set('status', status);
+
+    const grouped = await fetch('/api/productivity_grouped?' + params).then(r=>r.json());
+
+    // Compute overall metrics from all employees
+    const allEmps = grouped.flatMap(g => g.employees);
+    const active = allEmps.filter(d => d.status === 'Active');
+    const avgQ1 = active.filter(d=>d.q1_performance).reduce((s,d)=>s+d.q1_performance,0) / (active.filter(d=>d.q1_performance).length||1);
+    const avgQ2 = active.filter(d=>d.q2_performance).reduce((s,d)=>s+d.q2_performance,0) / (active.filter(d=>d.q2_performance).length||1);
+    const avgQ3 = active.filter(d=>d.q3_performance).reduce((s,d)=>s+d.q3_performance,0) / (active.filter(d=>d.q3_performance).length||1);
+
+    document.getElementById('prodMetrics').innerHTML = `
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-user-tie"></i></div>
+            <div class="metric-value">${grouped.length}</div>
+            <div class="metric-label">Managers</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-users"></i></div>
+            <div class="metric-value">${allEmps.length}</div>
+            <div class="metric-label">Total Employees</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-check-circle"></i></div>
+            <div class="metric-value">${active.length}</div>
+            <div class="metric-label">Active</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.blue}"><i class="fas fa-chart-line"></i></div>
+            <div class="metric-value">${(avgQ1*100).toFixed(1)}%</div>
+            <div class="metric-label">Avg Q1 Perf</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-chart-line"></i></div>
+            <div class="metric-value">${(avgQ2*100).toFixed(1)}%</div>
+            <div class="metric-label">Avg Q2 Perf</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-chart-line"></i></div>
+            <div class="metric-value">${(avgQ3*100).toFixed(1)}%</div>
+            <div class="metric-label">Avg Q3 Perf</div>
+        </div></div>
+    `;
+
+    // Manager-wise performance chart
+    destroyChart('prodTrendChart');
+    chartInstances['prodTrendChart'] = new Chart(document.getElementById('prodTrendChart'), {
+        type: 'bar',
+        data: {
+            labels: grouped.map(g => g.manager),
+            datasets: [
+                { label: 'Avg Q1', data: grouped.map(g => g.avg_q1 != null ? (g.avg_q1*100) : null), backgroundColor: COLORS.blue+'cc' },
+                { label: 'Avg Q2', data: grouped.map(g => g.avg_q2 != null ? (g.avg_q2*100) : null), backgroundColor: COLORS.accent+'cc' },
+                { label: 'Avg Q3', data: grouped.map(g => g.avg_q3 != null ? (g.avg_q3*100) : null), backgroundColor: COLORS.primary+'cc' },
+            ]
+        },
+        options: { responsive: true,
+            plugins: {
+                title: { display: true, text: 'Average Performance by Manager (Q1 → Q3)', font:{weight:'bold'} },
+                tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%' } },
+                datalabels: { font: { size: 9, weight: '600' }, formatter: v => v != null ? v.toFixed(0) + '%' : '', display: 'auto' }
+            },
+            scales: { x: { ticks: { font:{size:9}, maxRotation:45 } }, y: { beginAtZero: false, min: 50, max: 150, ticks: { callback: v => v + '%' } } } }
+    });
+
+    // Distribution chart (from all active employees)
+    const perf = active.filter(d=>d.q3_performance).map(d=>d.q3_performance);
+    const high = perf.filter(v=>v>=1.0).length;
+    const mid = perf.filter(v=>v>=0.85&&v<1.0).length;
+    const low = perf.filter(v=>v<0.85).length;
+
+    destroyChart('prodDistChart');
+    chartInstances['prodDistChart'] = new Chart(document.getElementById('prodDistChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['High (≥1.0)', 'Medium (0.85-1.0)', 'Low (<0.85)'],
+            datasets: [{ data: [high, mid, low], backgroundColor: [COLORS.green, COLORS.orange, COLORS.red] }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Q3 Performance Distribution', font:{weight:'bold'} },
+            legend: { position:'bottom' },
+            datalabels: { anchor: 'center', align: 'center', font: { size: 13, weight: '700' }, formatter: (v) => v } } }
+    });
+
+    // ── Build expandable manager table ──
+    let html = '';
+    grouped.forEach((mgr, idx) => {
+        // Manager summary row
+        const q3Color = mgr.avg_q3 >= 1.0 ? COLORS.green : mgr.avg_q3 >= 0.85 ? COLORS.orange : COLORS.red;
+        html += `<tr class="manager-row" id="mgr-row-${idx}" onclick="toggleManager(${idx})">
+            <td><span class="expand-icon"><i class="fas fa-chevron-right"></i></span></td>
+            <td>
+                <i class="fas fa-user-shield" style="color:${COLORS.purple};margin-right:6px"></i>${mgr.manager}
+            </td>
+            <td style="font-size:12px;color:var(--rg-text-secondary)">${mgr.team_name}</td>
+            <td class="text-center"><strong>${mgr.total}</strong></td>
+            <td class="text-center"><span class="mgr-badge" style="background:rgba(0,239,97,0.14);color:#00EF61">${mgr.active}</span></td>
+            <td class="text-center"><span class="mgr-badge" style="background:rgba(255,103,95,0.14);color:#FF675F">${mgr.inactive}</span></td>
+            <td class="text-center">${perfBadgePct(mgr.avg_q1)}</td>
+            <td class="text-center">${perfBadgePct(mgr.avg_q2)}</td>
+            <td class="text-center">${perfBadgePct(mgr.avg_q3)}</td>
+            <td class="text-center">${trendArrow(mgr.avg_q1, mgr.avg_q2, mgr.avg_q3)}</td>
+        </tr>`;
+
+        // Expandable detail row with employee sub-table
+        html += `<tr class="emp-details-row" id="mgr-detail-${idx}">
+            <td colspan="10">
+                <table class="emp-sub-table">
+                    <thead>
+                        <tr>
+                            <th>Emp ID</th>
+                            <th>Employee Name</th>
+                            <th>Designation</th>
+                            <th>Joining Date</th>
+                            <th class="text-center">Q1 Perf</th>
+                            <th class="text-center">Q2 Perf</th>
+                            <th class="text-center">Q3 Perf</th>
+                            <th class="text-center">Status</th>
+                            <th>Exit Type</th>
+                            <th class="text-end">Q3 CTC</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        mgr.employees.forEach(emp => {
+            html += `<tr>
+                <td>${emp.emp_id||''}</td>
+                <td><strong>${emp.employee_name||''}</strong></td>
+                <td style="font-size:11px">${emp.designation||''}</td>
+                <td style="font-size:11px">${emp.joining_date||''}</td>
+                <td class="text-center">${perfBadgePct(emp.q1_performance)}</td>
+                <td class="text-center">${perfBadgePct(emp.q2_performance)}</td>
+                <td class="text-center">${perfBadgePct(emp.q3_performance)}</td>
+                <td class="text-center">${statusBadge(emp.status)}</td>
+                <td style="font-size:11px">${emp.exit_type||''}</td>
+                <td class="text-end">${emp.q3_ctc ? fmtCurrency(emp.q3_ctc) : '-'}</td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></td></tr>`;
+    });
+
+    document.getElementById('prodManagerBody').innerHTML = html;
+}
+
+// ═══════════════ 4. ADARA DEVOPS ═══════════════
+async function loadAdaraDevops() {
+    const loc = document.getElementById('adaraLocFilter').value;
+    const params = loc ? `?location=${loc}` : '';
+    const data = await fetch('/api/adara_devops' + params).then(r=>r.json());
+
+    const avgUtil = data.reduce((s,d) => s + (d.utilisation||0), 0) / (data.length||1);
+    const above100 = data.filter(d => (d.utilisation||0) >= 100).length;
+    const below80 = data.filter(d => (d.utilisation||0) < 80).length;
+
+    document.getElementById('adaraMetrics').innerHTML = `
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-users"></i></div>
+            <div class="metric-value">${data.length}</div>
+            <div class="metric-label">Team Size</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-tachometer-alt"></i></div>
+            <div class="metric-value">${avgUtil.toFixed(0)}%</div>
+            <div class="metric-label">Avg Utilisation</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.blue}"><i class="fas fa-arrow-up"></i></div>
+            <div class="metric-value">${above100}</div>
+            <div class="metric-label">Above 100% Util</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.orange}"><i class="fas fa-arrow-down"></i></div>
+            <div class="metric-value">${below80}</div>
+            <div class="metric-label">Below 80% Util</div>
+        </div></div>
+    `;
+
+    // Utilisation bar chart
+    destroyChart('adaraUtilChart');
+    const sorted = [...data].sort((a,b) => (b.utilisation||0) - (a.utilisation||0));
+    chartInstances['adaraUtilChart'] = new Chart(document.getElementById('adaraUtilChart'), {
+        type: 'bar',
+        data: {
+            labels: sorted.map(d => d.employee_name),
+            datasets: [{
+                label: '% Utilisation',
+                data: sorted.map(d => d.utilisation),
+                backgroundColor: sorted.map(d => (d.utilisation||0) >= 100 ? COLORS.green+'cc' : (d.utilisation||0) >= 80 ? COLORS.blue+'cc' : COLORS.orange+'cc'),
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true, plugins: { title: { display: true, text: 'Employee Utilisation (%)', font:{weight:'bold'} },
+            legend: { display:false },
+            datalabels: { anchor: 'end', align: 'right', font: { size: 10, weight: '600' }, formatter: v => v != null ? v + '%' : '' } },
+            scales: { x: { beginAtZero:true, max: 150 } } }
+    });
+
+    // Location pie
+    destroyChart('adaraLocChart');
+    const locGroups = {};
+    data.forEach(d => { locGroups[d.location] = (locGroups[d.location]||0)+1; });
+    chartInstances['adaraLocChart'] = new Chart(document.getElementById('adaraLocChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(locGroups),
+            datasets: [{ data: Object.values(locGroups), backgroundColor: [COLORS.secondary, COLORS.primary, COLORS.accent] }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Team by Location', font:{weight:'bold'} },
+            legend: { position:'bottom' },
+            datalabels: { anchor: 'center', align: 'center', font: { size: 13, weight: '700' }, formatter: (v) => v } } }
+    });
+
+    // Table
+    let thead = '<tr><th>Emp ID</th><th>Name</th><th>Joining Date</th><th>Tenure</th><th>Designation</th><th>Location</th><th>Utilisation %</th><th>Comments</th></tr>';
+    let tbody = data.map(d => `<tr>
+        <td>${d.emp_id}</td>
+        <td><strong>${d.employee_name}</strong></td>
+        <td>${d.joining_date||''}</td>
+        <td style="font-size:11px">${d.tenure||''}</td>
+        <td style="font-size:11px">${d.designation||''}</td>
+        <td><span class="badge bg-secondary">${d.location||''}</span></td>
+        <td class="text-center"><span class="perf-badge ${(d.utilisation||0)>=100?'perf-high':(d.utilisation||0)>=80?'perf-mid':'perf-low'}">${d.utilisation||0}%</span></td>
+        <td style="max-width:200px;font-size:11px">${d.comments||''}</td>
+    </tr>`).join('');
+    document.querySelector('#adaraTable thead').innerHTML = thead;
+    document.querySelector('#adaraTable tbody').innerHTML = tbody;
+}
+
+// ═══════════════ 5. DEVOPS SHARED SERVICES ═══════════════
+async function loadDevopsShared() {
+    const [uptime, tickets] = await Promise.all([
+        fetch('/api/devops_uptime').then(r=>r.json()),
+        fetch('/api/devops_tickets').then(r=>r.json()),
+    ]);
+
+    // Uptime cards
+    let uptimeHTML = '';
+    uptime.forEach(d => {
+        const pct = ((d.availability_level||0)*100).toFixed(2);
+        const color = pct >= 99.9 ? COLORS.green : pct >= 99 ? COLORS.orange : COLORS.red;
+        uptimeHTML += `<div class="col-md-3"><div class="metric-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <strong style="font-size:13px">${d.system_product}</strong>
+                <span style="font-size:20px;font-weight:800;color:${color}">${pct}%</span>
+            </div>
+            <div class="uptime-bar"><div class="fill" style="width:${pct}%;background:${color}"></div></div>
+            <div style="font-size:10px;color:var(--rg-text-muted);margin-top:6px">Downtime: ${d.downtime_per_quarter_hrs||0} hrs/quarter</div>
+        </div></div>`;
+    });
+    document.getElementById('uptimeCards').innerHTML = uptimeHTML;
+
+    // Uptime table
+    let uHead = '<tr><th>System/Product</th><th>Availability (%)</th><th>Total Downtime (%)</th><th>Downtime/Year (hrs)</th><th>Downtime/Quarter (hrs)</th><th>Downtime/Month (hrs)</th></tr>';
+    let uBody = uptime.map(d => `<tr>
+        <td><strong>${d.system_product}</strong></td>
+        <td class="text-center">${fmtPct(d.availability_level)}</td>
+        <td class="text-center">${d.total_downtime ? (d.total_downtime*100).toFixed(4)+'%' : '0%'}</td>
+        <td class="text-center">${d.downtime_per_year_hrs||0}</td>
+        <td class="text-center">${d.downtime_per_quarter_hrs||0}</td>
+        <td class="text-center">${d.downtime_per_month_hrs||0}</td>
+    </tr>`).join('');
+    document.querySelector('#uptimeTable thead').innerHTML = uHead;
+    document.querySelector('#uptimeTable tbody').innerHTML = uBody;
+
+    // Tickets chart
+    destroyChart('ticketsChart');
+    chartInstances['ticketsChart'] = new Chart(document.getElementById('ticketsChart'), {
+        type: 'bar',
+        data: {
+            labels: tickets.map(d => d.system_product||''),
+            datasets: [
+                { label: 'Per Year', data: tickets.map(d => d.est_tickets_per_year), backgroundColor: COLORS.secondary+'cc' },
+                { label: 'Per Quarter', data: tickets.map(d => d.est_tickets_per_quarter), backgroundColor: COLORS.accent+'cc' },
+                { label: 'Per Month', data: tickets.map(d => d.est_tickets_per_month), backgroundColor: COLORS.primary+'cc' },
+            ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Estimated Tickets by Product', font:{weight:'bold'} },
+            datalabels: { font: { size: 9 }, display: 'auto', formatter: v => v != null ? v : '' } },
+            scales: { x: { ticks: { font:{size:9}, maxRotation:45 } } } }
+    });
+
+    // Tickets pie
+    destroyChart('ticketsPieChart');
+    const tYear = tickets.filter(d=>d.est_tickets_per_year);
+    chartInstances['ticketsPieChart'] = new Chart(document.getElementById('ticketsPieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: tYear.map(d => d.system_product),
+            datasets: [{ data: tYear.map(d => d.est_tickets_per_year), backgroundColor: COLORS.palette }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Yearly Ticket Distribution', font:{weight:'bold'} },
+            legend: { position:'bottom', labels:{font:{size:9}} },
+            datalabels: { anchor: 'center', align: 'center', font: { size: 10, weight: '700' }, color: '#fff', formatter: (v) => v } } }
+    });
+
+    // Tickets table
+    let tHead = '<tr><th>System/Product</th><th>Availability</th><th>Downtime (%)</th><th>Downtime/Year</th><th>Tickets/Year</th><th>Tickets/Quarter</th><th>Tickets/Month</th><th>Tickets/Week</th></tr>';
+    let tBody = tickets.map(d => `<tr>
+        <td><strong>${d.system_product||''}</strong></td>
+        <td class="text-center">${d.availability_level ? fmtPct(d.availability_level) : '-'}</td>
+        <td class="text-center">${d.total_downtime ? (d.total_downtime*100).toFixed(4)+'%' : '-'}</td>
+        <td class="text-center">${d.downtime_per_year_hrs||'-'}</td>
+        <td class="text-center"><strong>${d.est_tickets_per_year||'-'}</strong></td>
+        <td class="text-center">${d.est_tickets_per_quarter||'-'}</td>
+        <td class="text-center">${d.est_tickets_per_month||'-'}</td>
+        <td class="text-center">${d.est_tickets_per_week||'-'}</td>
+    </tr>`).join('');
+    document.querySelector('#ticketsTable thead').innerHTML = tHead;
+    document.querySelector('#ticketsTable tbody').innerHTML = tBody;
+}
+
+// ═══════════════ 6. IT HELPDESK ═══════════════
+async function loadITHelpdesk() {
+    const [data, notes] = await Promise.all([
+        fetch('/api/it_helpdesk').then(r=>r.json()),
+        fetch('/api/it_helpdesk_notes').then(r=>r.json()),
+    ]);
+
+    const latestTickets = data[data.length-1]?.num_tickets||0;
+    const latestPerEng = data[data.length-1]?.tickets_per_engineer||0;
+    const totalTickets = data.reduce((s,d)=>s+(d.num_tickets||0),0);
+    const avgPerEng = data.reduce((s,d)=>s+(d.tickets_per_engineer||0),0)/data.length;
+
+    document.getElementById('helpdeskMetrics').innerHTML = `
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-ticket-alt"></i></div>
+            <div class="metric-value">${totalTickets.toLocaleString()}</div>
+            <div class="metric-label">Total Tickets (All Months)</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-calendar-day"></i></div>
+            <div class="metric-value">${latestTickets}</div>
+            <div class="metric-label">Latest Month Tickets</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-user-cog"></i></div>
+            <div class="metric-value">${fmtNum(latestPerEng,1)}</div>
+            <div class="metric-label">Latest Tickets/Engineer</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-chart-bar"></i></div>
+            <div class="metric-value">${fmtNum(avgPerEng,1)}</div>
+            <div class="metric-label">Avg Tickets/Engineer</div>
+        </div></div>
+    `;
+
+    // Ticket trend
+    destroyChart('helpdeskTicketChart');
+    chartInstances['helpdeskTicketChart'] = new Chart(document.getElementById('helpdeskTicketChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.month),
+            datasets: [{
+                label: 'No. of Tickets',
+                data: data.map(d => d.num_tickets),
+                backgroundColor: data.map((_,i) => i < 9 ? COLORS.secondary+'cc' : i < 15 ? COLORS.accent+'cc' : COLORS.primary+'cc'),
+                borderRadius: 4
+            }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Monthly IT Help Desk Tickets', font:{weight:'bold'} },
+            datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: '600' }, display: 'auto', formatter: v => v != null ? v : '' } },
+            scales: { x: { ticks: { font:{size:10} } } } }
+    });
+
+    // Per engineer trend
+    destroyChart('helpdeskPerEngChart');
+    chartInstances['helpdeskPerEngChart'] = new Chart(document.getElementById('helpdeskPerEngChart'), {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.month),
+            datasets: [{
+                label: 'Tickets per Engineer',
+                data: data.map(d => d.tickets_per_engineer),
+                borderColor: COLORS.primary,
+                backgroundColor: COLORS.primary+'22',
+                fill: true, tension: 0.3, pointRadius: 4
+            }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Tickets per Engineer Trend', font:{weight:'bold'} },
+            datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: '600' }, display: 'auto', formatter: v => v != null ? v.toFixed(1) : '' } },
+            scales: { x: { ticks: { font:{size:10} } } } }
+    });
+
+    // Table
+    let thead = '<tr><th>Month</th><th>No. of Tickets</th><th>Tickets/Engineer</th><th>No. of Engineers</th></tr>';
+    let tbody = data.map(d => `<tr>
+        <td><strong>${d.month}</strong></td>
+        <td class="text-center">${d.num_tickets||0}</td>
+        <td class="text-center">${fmtNum(d.tickets_per_engineer,1)}</td>
+        <td class="text-center">${fmtNum(d.num_emp,1)}</td>
+    </tr>`).join('');
+    document.querySelector('#helpdeskTable thead').innerHTML = thead;
+    document.querySelector('#helpdeskTable tbody').innerHTML = tbody;
+
+    // Notes
+    let notesHTML = notes.map(n => `<div class="note-box mt-2"><i class="fas fa-info-circle"></i> ${n.note}</div>`).join('');
+    document.getElementById('helpdeskNotes').innerHTML = notesHTML;
+}
+
+// ═══════════════ 7. TA TEAM ═══════════════
+async function loadTATeam() {
+    const [positions, leaders, partners] = await Promise.all([
+        fetch('/api/ta_open_positions').then(r=>r.json()),
+        fetch('/api/ta_leader_positions').then(r=>r.json()),
+        fetch('/api/ta_partner_performance').then(r=>r.json()),
+    ]);
+
+    // Metrics cards — same icon style as IT HelpDesk
+    const latestMonth = positions[positions.length - 1];
+    const totalOpen = latestMonth.new_count + latestMonth.replacement_count;
+    const totalOffered = partners.reduce((s,p) => s + p.offered, 0);
+    const totalJoinings = partners.reduce((s,p) => s + p.joinings, 0);
+    const avgTimeToOffer = Math.round(partners.reduce((s,p) => s + p.avg_time_to_offer, 0) / partners.length);
+    const totalLeaderOpen = leaders.reduce((s,l) => s + l.open_positions, 0);
+
+    document.getElementById('taMetrics').innerHTML = `
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-briefcase"></i></div>
+            <div class="metric-value">${totalOpen}</div>
+            <div class="metric-label">Open Positions (${latestMonth.month})</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-plus-circle"></i></div>
+            <div class="metric-value">${latestMonth.new_count}</div>
+            <div class="metric-label">New Positions</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-exchange-alt"></i></div>
+            <div class="metric-value">${latestMonth.replacement_count}</div>
+            <div class="metric-label">Replacement Positions</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-handshake"></i></div>
+            <div class="metric-value">${totalOffered}</div>
+            <div class="metric-label">Total Offered</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.orange}"><i class="fas fa-user-check"></i></div>
+            <div class="metric-value">${totalJoinings}</div>
+            <div class="metric-label">Total Joinings</div>
+        </div></div>
+        <div class="col-md-2"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.coral}"><i class="fas fa-clock"></i></div>
+            <div class="metric-value">${avgTimeToOffer} days</div>
+            <div class="metric-label">Avg Time to Offer</div>
+        </div></div>
+    `;
+
+    const months = positions.map(p => p.month);
+
+    // ─── Chart 1: New vs Replacement Open Positions (Horizontal Bar) ───
+    destroyChart('taOpenPosChart');
+    chartInstances['taOpenPosChart'] = new Chart(document.getElementById('taOpenPosChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'New',
+                    data: positions.map(p => p.new_count),
+                    backgroundColor: COLORS.accent + 'cc',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Replacement',
+                    data: positions.map(p => p.replacement_count),
+                    backgroundColor: COLORS.primary + 'cc',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'New vs Replacement Open Positions', font:{weight:'bold'} },
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}` } },
+                datalabels: { anchor: 'center', align: 'center', font: { size: 12, weight: '700' }, formatter: v => v }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+
+    // ─── Chart 2: New vs Replacements % (Bar + Line) ───
+    destroyChart('taNewVsReplChart');
+    chartInstances['taNewVsReplChart'] = new Chart(document.getElementById('taNewVsReplChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Replacement %',
+                    data: positions.map(p => p.replacement_pct),
+                    backgroundColor: COLORS.secondary + 'cc',
+                    borderRadius: 4,
+                    order: 2,
+                },
+                {
+                    label: 'New %',
+                    data: positions.map(p => p.new_pct),
+                    type: 'line',
+                    borderColor: COLORS.orange,
+                    backgroundColor: COLORS.orange + '22',
+                    pointBackgroundColor: COLORS.orange,
+                    pointRadius: 5,
+                    borderWidth: 2.5,
+                    tension: 0.3,
+                    order: 1,
+                    yAxisID: 'y',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'New vs Replacements', font:{weight:'bold'} },
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } },
+                datalabels: { font: { size: 11, weight: '700' }, formatter: v => v + '%' }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { max: 80, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+
+    // ─── Chart 3: Offered Positions — New vs Replacement % (Stacked Bar) ───
+    destroyChart('taOfferedPctChart');
+    chartInstances['taOfferedPctChart'] = new Chart(document.getElementById('taOfferedPctChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'New - Offered',
+                    data: positions.map(p => p.offered_new_pct),
+                    backgroundColor: COLORS.accent + 'bb',
+                },
+                {
+                    label: 'Replacement - Offered',
+                    data: positions.map(p => p.offered_replacement_pct),
+                    backgroundColor: COLORS.secondary + '99',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'Offered Positions — New vs Replacement %', font:{weight:'bold'} },
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } },
+                datalabels: { anchor: 'center', align: 'center', font: { size: 12, weight: '700' }, formatter: v => v + '%' }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+
+    // ─── Chart 4: Offered from Closing Position (Line) ───
+    destroyChart('taOfferedClosingChart');
+    chartInstances['taOfferedClosingChart'] = new Chart(document.getElementById('taOfferedClosingChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Offered Nos.',
+                data: positions.map(p => p.offered_from_closing),
+                borderColor: COLORS.primary,
+                backgroundColor: COLORS.primary + '22',
+                pointBackgroundColor: COLORS.primary,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                borderWidth: 2.5,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'Offered — From Closing Position', font:{weight:'bold'} },
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => `Offered: ${ctx.raw}` } },
+                datalabels: { anchor: 'end', align: 'top', font: { size: 13, weight: '700' }, formatter: v => v }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { min: 0, max: 60, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    // ─── Chart 5: Leader Wise Open Positions (Bar) ───
+    destroyChart('taLeaderChart');
+    chartInstances['taLeaderChart'] = new Chart(document.getElementById('taLeaderChart'), {
+        type: 'bar',
+        data: {
+            labels: leaders.map(l => l.leader_name),
+            datasets: [{
+                label: 'Total',
+                data: leaders.map(l => l.open_positions),
+                backgroundColor: COLORS.accent + 'cc',
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'Leader Wise — Open Positions (as on date)', font:{weight:'bold'} },
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: ctx => `Open Positions: ${ctx.raw}` } },
+                datalabels: { anchor: 'end', align: 'top', font: { size: 11, weight: '700' }, formatter: v => v }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } },
+                y: { max: 25, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    // ─── TA Partner Table ───
+    let thead = '<tr><th>TA Partner</th><th class="text-center">Offered</th><th class="text-center">Joinings</th><th class="text-center">Avg. Time to Offer</th></tr>';
+    let tbody = partners.map(p => `<tr>
+        <td><strong>${p.ta_partner}</strong></td>
+        <td class="text-center">${p.offered}</td>
+        <td class="text-center">${p.joinings}</td>
+        <td class="text-center">${p.avg_time_to_offer}</td>
+    </tr>`).join('');
+    document.querySelector('#taPartnerTable thead').innerHTML = thead;
+    document.querySelector('#taPartnerTable tbody').innerHTML = tbody;
+
+    // ─── Chart 6: TA Partner Performance (Bar + Line combo) ───
+    destroyChart('taPartnerChart');
+    chartInstances['taPartnerChart'] = new Chart(document.getElementById('taPartnerChart'), {
+        type: 'bar',
+        data: {
+            labels: partners.map(p => p.ta_partner.length > 12 ? p.ta_partner.substring(0,12)+'...' : p.ta_partner),
+            datasets: [
+                {
+                    label: 'Offered',
+                    data: partners.map(p => p.offered),
+                    backgroundColor: COLORS.accent + 'cc',
+                    borderRadius: 4,
+                    order: 2,
+                    yAxisID: 'y',
+                },
+                {
+                    label: 'Avg. Time to Offer',
+                    data: partners.map(p => p.avg_time_to_offer),
+                    type: 'line',
+                    borderColor: COLORS.primary,
+                    backgroundColor: COLORS.primary + '22',
+                    pointBackgroundColor: COLORS.primary,
+                    pointRadius: 5,
+                    borderWidth: 2.5,
+                    tension: 0.3,
+                    order: 1,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                title: { display: true, text: 'Performance', font:{weight:'bold'} },
+                legend: { position: 'top' },
+                datalabels: { font: { size: 9, weight: '600' }, display: 'auto', formatter: v => v != null ? v : '' }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } },
+                y: {
+                    position: 'left',
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    title: { display: false },
+                    max: 100,
+                },
+                y1: {
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: COLORS.primary + 'cc' },
+                    title: { display: false },
+                    max: 60,
+                    min: 0,
+                }
+            }
+        }
+    });
+}
+
+// ═══════════════ 8. SOHO TEAM ═══════════════
+async function loadSohoFilters() {
+    const monitors = await fetch('/api/soho_monitors').then(r=>r.json());
+    const sel = document.getElementById('sohoMonitorFilter');
+    monitors.forEach(m => { const o = document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); });
+}
+
+async function loadSoho() {
+    const monitor = document.getElementById('sohoMonitorFilter').value;
+    const params = monitor ? `?monitor=${encodeURIComponent(monitor)}` : '';
+
+    const [monitoring, cs, sc] = await Promise.all([
+        fetch('/api/soho_monitoring' + params).then(r=>r.json()),
+        fetch('/api/soho_client_success').then(r=>r.json()),
+        fetch('/api/soho_social_content').then(r=>r.json()),
+    ]);
+
+    // Monitoring chart - grouped by monitor
+    const monitorGroups = {};
+    monitoring.forEach(d => {
+        if (!monitorGroups[d.monitor]) monitorGroups[d.monitor] = [];
+        monitorGroups[d.monitor].push(d);
+    });
+
+    const months = ['2025/10','2025/11','2025/12'];
+    destroyChart('sohoMonitorChart');
+    const datasets = Object.keys(monitorGroups).map((name,i) => ({
+        label: name,
+        data: months.map(m => { const r = monitorGroups[name].find(d=>d.yearmonth===m); return r ? r.index_score : null; }),
+        borderColor: COLORS.palette[i % COLORS.palette.length],
+        backgroundColor: COLORS.palette[i % COLORS.palette.length]+'33',
+        tension: 0.3, pointRadius: 5
+    }));
+    chartInstances['sohoMonitorChart'] = new Chart(document.getElementById('sohoMonitorChart'), {
+        type: 'line',
+        data: { labels: ['Oct 2025','Nov 2025','Dec 2025'], datasets },
+        options: { responsive: true, plugins: { title: { display: true, text: 'SoHo Monitoring — Index Score Trend', font:{weight:'bold'} },
+            legend: { position:'bottom', labels:{font:{size:9}} },
+            datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: '600' }, display: 'auto', formatter: v => v != null ? v.toFixed(2) : '' } } }
+    });
+
+    // Average scores by monitor
+    destroyChart('sohoAvgChart');
+    const monitorNames = Object.keys(monitorGroups);
+    const avgScores = monitorNames.map(n => {
+        const scores = monitorGroups[n].filter(d=>d.index_score).map(d=>d.index_score);
+        return scores.reduce((s,v)=>s+v,0)/(scores.length||1);
+    });
+    chartInstances['sohoAvgChart'] = new Chart(document.getElementById('sohoAvgChart'), {
+        type: 'bar',
+        data: {
+            labels: monitorNames,
+            datasets: [{ label: 'Avg Index Score', data: avgScores,
+                backgroundColor: avgScores.map(v => v >= 1 ? COLORS.green+'cc' : v >= 0.7 ? COLORS.blue+'cc' : COLORS.orange+'cc'),
+                borderRadius: 4 }]
+        },
+        options: { indexAxis:'y', responsive: true, plugins: { title: { display: true, text: 'Avg Index Score by Monitor', font:{weight:'bold'} }, legend:{display:false},
+            datalabels: { anchor: 'end', align: 'right', font: { size: 10, weight: '600' }, formatter: v => v != null ? v.toFixed(2) : '' } } }
+    });
+
+    // Monitoring table
+    let mHead = '<tr><th>Monitor</th><th>Month</th><th>Index Score</th><th>Handling Time</th><th>Response Rate</th></tr>';
+    let mBody = monitoring.map(d => `<tr>
+        <td><strong>${d.monitor}</strong></td>
+        <td>${d.yearmonth}</td>
+        <td class="text-center">${perfBadge(d.index_score)}</td>
+        <td class="text-center">${fmtNum(d.handling_time_score,1)}</td>
+        <td class="text-center">${fmtNum(d.response_rate_score,1)}</td>
+    </tr>`).join('');
+    document.querySelector('#sohoMonitorTable thead').innerHTML = mHead;
+    document.querySelector('#sohoMonitorTable tbody').innerHTML = mBody;
+
+    // Client Success table
+    let csHead = '<tr><th>CS Team</th><th>High Risk %</th><th>High Risk Clients</th><th>Escalations</th><th>Cancelations</th><th>NPS BCV</th><th>NPS Team</th><th>Avg Client Age</th><th>Upsells</th><th>Total Score</th><th>Average</th><th>Target</th></tr>';
+    let csBody = cs.map(d => `<tr>
+        <td><strong>${d.cs_team}</strong></td>
+        <td class="text-center">${fmtNum(d.high_risk_pct,2)}</td>
+        <td class="text-center">${fmtNum(d.high_risk_clients,2)}</td>
+        <td class="text-center">${fmtNum(d.recent_escalations,1)}</td>
+        <td class="text-center">${fmtNum(d.total_cancelations,2)}</td>
+        <td class="text-center">${fmtNum(d.nps_bcv_score,2)}</td>
+        <td class="text-center">${fmtNum(d.nps_team_score,2)}</td>
+        <td class="text-center">${fmtNum(d.avg_client_age,2)}</td>
+        <td class="text-center">${fmtNum(d.upsells,2)}</td>
+        <td class="text-center"><strong>${fmtNum(d.total_score,2)}</strong></td>
+        <td class="text-center">${fmtNum(d.average,2)}</td>
+        <td class="text-center">${fmtNum(d.target,0)}</td>
+    </tr>`).join('');
+    document.querySelector('#sohoCSTable thead').innerHTML = csHead;
+    document.querySelector('#sohoCSTable tbody').innerHTML = csBody;
+
+    // CS Chart
+    destroyChart('sohoCSChart');
+    chartInstances['sohoCSChart'] = new Chart(document.getElementById('sohoCSChart'), {
+        type: 'radar',
+        data: {
+            labels: ['High Risk %','Escalations','NPS BCV','NPS Team','Upsells','Total Score'],
+            datasets: cs.map((d,i) => ({
+                label: d.cs_team,
+                data: [d.high_risk_pct, d.recent_escalations, d.nps_bcv_score, d.nps_team_score, d.upsells, d.total_score],
+                borderColor: COLORS.palette[i], backgroundColor: COLORS.palette[i]+'33', pointRadius: 3
+            }))
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Client Success Radar — SoHo', font:{weight:'bold'} },
+            legend: { position:'bottom', labels:{font:{size:9}} },
+            datalabels: { display: false } } }
+    });
+
+    // Social Content table
+    let scHead = '<tr><th>Team Member</th><th>Escalations</th><th>NPS Score</th><th>Index Score</th><th>Average</th><th>Target</th></tr>';
+    let scBody = sc.map(d => `<tr>
+        <td><strong>${d.team_member}</strong></td>
+        <td class="text-center">${fmtNum(d.escalations,1)}</td>
+        <td class="text-center">${fmtNum(d.nps_score,1)}</td>
+        <td class="text-center">${perfBadge(d.index_score)}</td>
+        <td class="text-center">${fmtNum(d.average,1)}</td>
+        <td class="text-center">${fmtNum(d.target,0)}</td>
+    </tr>`).join('');
+    document.querySelector('#sohoSCTable thead').innerHTML = scHead;
+    document.querySelector('#sohoSCTable tbody').innerHTML = scBody;
+}
+
+// ═══════════════ 8. CUSTOMER EXPERIENCE ═══════════════
+async function loadCustomerExp() {
+    const [data, notes] = await Promise.all([
+        fetch('/api/customer_experience').then(r=>r.json()),
+        fetch('/api/customer_experience_notes').then(r=>r.json()),
+    ]);
+
+    const avgQuality = data.filter(d=>d.quality).reduce((s,d)=>s+(d.quality||0),0) / data.filter(d=>d.quality).length;
+    const avgTickets = data.reduce((s,d)=>s+(d.avg_daily_tickets||0),0) / data.length;
+    const totalTickets = data.reduce((s,d)=>s+(d.total_tickets||0),0);
+
+    document.getElementById('ceMetrics').innerHTML = `
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.secondary}"><i class="fas fa-users"></i></div>
+            <div class="metric-value">${data.length}</div>
+            <div class="metric-label">Team Size</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.green}"><i class="fas fa-check-double"></i></div>
+            <div class="metric-value">${(avgQuality*100).toFixed(1)}%</div>
+            <div class="metric-label">Avg Quality Score</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.primary}"><i class="fas fa-ticket-alt"></i></div>
+            <div class="metric-value">${fmtNum(totalTickets,0)}</div>
+            <div class="metric-label">Total Tickets</div>
+        </div></div>
+        <div class="col-md-3"><div class="metric-card">
+            <div class="metric-icon" style="background:${COLORS.accent}"><i class="fas fa-calendar-check"></i></div>
+            <div class="metric-value">${fmtNum(avgTickets,1)}</div>
+            <div class="metric-label">Avg Daily Tickets</div>
+        </div></div>
+    `;
+
+    // Productivity chart
+    destroyChart('ceProductivityChart');
+    chartInstances['ceProductivityChart'] = new Chart(document.getElementById('ceProductivityChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.name),
+            datasets: [
+                { label: 'W1', data: data.map(d => d.productivity_w1), backgroundColor: COLORS.secondary+'cc' },
+                { label: 'W2', data: data.map(d => d.productivity_w2), backgroundColor: COLORS.accent+'cc' },
+                { label: 'W3', data: data.map(d => d.productivity_w3), backgroundColor: COLORS.blue+'cc' },
+                { label: 'W4', data: data.map(d => d.productivity_w4), backgroundColor: COLORS.green+'cc' },
+                { label: 'W5', data: data.map(d => d.productivity_w5), backgroundColor: COLORS.primary+'cc' },
+            ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Weekly Productivity by Employee', font:{weight:'bold'} },
+            datalabels: { display: false } },
+            scales: { x: { ticks: { font:{size:9}, maxRotation:45 } } } }
+    });
+
+    // Quality chart
+    destroyChart('ceQualityChart');
+    chartInstances['ceQualityChart'] = new Chart(document.getElementById('ceQualityChart'), {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.name),
+            datasets: [
+                { label: 'Quality', data: data.map(d => d.quality ? d.quality*100 : 0), backgroundColor: COLORS.green+'cc' },
+                { label: 'CSAT', data: data.map(d => d.csat ? d.csat*100 : 0), backgroundColor: COLORS.accent+'cc' },
+            ]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Quality & CSAT Scores (%)', font:{weight:'bold'} },
+            datalabels: { font: { size: 9, weight: '600' }, display: 'auto', formatter: v => v != null ? v.toFixed(0) + '%' : '' } },
+            scales: { x: { ticks: { font:{size:9}, maxRotation:45 } }, y: { beginAtZero:true, max:110 } } }
+    });
+
+    // Table
+    let thead = '<tr><th>#</th><th>Emp ID</th><th>Name</th><th>ART (L1) Hrs</th><th>Reopen%</th><th>NPS</th><th>CSAT</th><th>Quality</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>Total Tickets</th><th>Avg Daily</th><th>Days</th></tr>';
+    let tbody = data.map(d => `<tr>
+        <td>${d.serial_no}</td>
+        <td>${d.emp_id}</td>
+        <td><strong>${d.name}</strong></td>
+        <td class="text-center">${fmtNum(d.art_l1_hrs,1)}</td>
+        <td class="text-center">${d.reopen_pct ? (d.reopen_pct*100).toFixed(2)+'%' : '-'}</td>
+        <td class="text-center">${d.nps!=null ? d.nps : '-'}</td>
+        <td class="text-center">${d.csat!=null ? fmtNum(d.csat,2) : '-'}</td>
+        <td class="text-center">${d.quality!=null && d.quality!=='-' ? '<span class="perf-badge '+(d.quality>=0.95?'perf-high':d.quality>=0.85?'perf-mid':'perf-low')+'">'+(d.quality*100).toFixed(1)+'%</span>' : '-'}</td>
+        <td class="text-center">${fmtNum(d.productivity_w1,1)}</td>
+        <td class="text-center">${fmtNum(d.productivity_w2,1)}</td>
+        <td class="text-center">${fmtNum(d.productivity_w3,1)}</td>
+        <td class="text-center">${fmtNum(d.productivity_w4,1)}</td>
+        <td class="text-center">${fmtNum(d.productivity_w5,1)}</td>
+        <td class="text-center"><strong>${fmtNum(d.total_tickets,1)}</strong></td>
+        <td class="text-center">${fmtNum(d.avg_daily_tickets,1)}</td>
+        <td class="text-center">${fmtNum(d.working_days,1)}</td>
+    </tr>`).join('');
+    document.querySelector('#ceTable thead').innerHTML = thead;
+    document.querySelector('#ceTable tbody').innerHTML = tbody;
+
+    // Notes
+    let notesHTML = notes.map(n => `<div class="note-box mt-2"><i class="fas fa-info-circle"></i> ${n.note}</div>`).join('');
+    document.getElementById('ceNotes').innerHTML = notesHTML;
+}
+
+// ═══════════════ INITIAL LOAD ═══════════════
+window._costLoaded = true;
+loadCostSummary();
+</script>
+</body>
+</html>
