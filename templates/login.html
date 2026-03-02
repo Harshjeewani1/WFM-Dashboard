@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | WFM Report — RateGain</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --rg-vivid: #8012FF;
+            --rg-navy: #242452;
+            --rg-dark-purple: #4B139B;
+            --rg-bg: #0c0e24;
+            --rg-surface: #121436;
+            --rg-surface-2: #181b42;
+            --rg-surface-3: #1e2252;
+            --rg-border: rgba(128,18,255,0.20);
+            --rg-border-light: rgba(128,18,255,0.30);
+            --rg-purple: #8012FF;
+            --rg-purple-light: #c9a0ff;
+            --rg-text: #FFFFFF;
+            --rg-text-secondary: #dcdcf0;
+            --rg-text-muted: #a0a0c0;
+            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #4B139B 100%);
+            --rg-gradient-accent: linear-gradient(135deg, #8012FF 0%, #33ADFF 100%);
+            --rg-coral: #FF675F;
+            --rg-green: #00EF61;
+            --glow-purple: 0 0 20px rgba(128,18,255,0.18);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--rg-bg);
+            color: var(--rg-text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-animation .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            animation: float 20s ease-in-out infinite;
+        }
+        .bg-animation .orb:nth-child(1) {
+            width: 500px; height: 500px;
+            background: var(--rg-vivid);
+            top: -10%; left: -5%;
+            animation-duration: 22s;
+        }
+        .bg-animation .orb:nth-child(2) {
+            width: 400px; height: 400px;
+            background: #33ADFF;
+            bottom: -10%; right: -5%;
+            animation-duration: 18s;
+            animation-delay: -5s;
+        }
+        .bg-animation .orb:nth-child(3) {
+            width: 300px; height: 300px;
+            background: var(--rg-dark-purple);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation-duration: 25s;
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(15px, 10px) scale(1.02); }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--rg-surface);
+            border: 1.5px solid var(--rg-border-light);
+            border-radius: 20px;
+            padding: 44px 36px 36px;
+            box-shadow: 0 8px 60px rgba(0,0,0,0.5), var(--glow-purple);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Logo & Branding */
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-header img {
+            height: 44px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 2px 8px rgba(128,18,255,0.3));
+        }
+        .login-header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--rg-text);
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+        .login-header p {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--rg-purple-light);
+            letter-spacing: 0.2px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--rg-text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--rg-text-muted);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background: var(--rg-surface-2);
+            border: 1.5px solid var(--rg-border);
+            border-radius: 10px;
+            color: var(--rg-text);
+            font-family: 'Manrope', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .input-wrapper input::placeholder {
+            color: var(--rg-text-muted);
+            font-weight: 400;
+        }
+        .input-wrapper input:focus {
+            border-color: var(--rg-vivid);
+            box-shadow: 0 0 0 3px rgba(128,18,255,0.15);
+        }
+        .input-wrapper input:focus + i,
+        .input-wrapper input:focus ~ i {
+            color: var(--rg-vivid);
+        }
+
+        /* Password toggle */
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--rg-text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-password:hover {
+            color: var(--rg-purple-light);
+        }
+
+        /* Submit button */
+        .btn-login {
+            width: 100%;
+            padding: 13px 20px;
+            background: var(--rg-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-top: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 30px rgba(128,18,255,0.4);
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        .btn-login .spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .btn-login.loading .spinner { display: inline-block; }
+        .btn-login.loading .btn-text { opacity: 0.7; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Error message */
+        .error-msg {
+            background: rgba(255,103,95,0.12);
+            border: 1px solid rgba(255,103,95,0.25);
+            color: var(--rg-coral);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: var(--rg-text-muted);
+            letter-spacing: 0.3px;
+        }
+        .login-footer i {
+            color: var(--rg-vivid);
+            margin: 0 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card { padding: 32px 24px 28px; }
+            .login-header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-animation">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+</div>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <img src="{{ url_for('static', filename='img/RateGain-Logo.jpg') }}" alt="RateGain">
+            <h1>WFM Report</h1>
+            <p>H1 FY26 & Q3'26</p>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <div class="input-wrapper">
+                    <input type="text" name="username" placeholder="Enter your username" required autocomplete="username" autofocus>
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <input type="password" name="password" id="passwordInput" placeholder="Enter your password" required autocomplete="current-password">
+                    <i class="fas fa-lock"></i>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                <span class="spinner"></span>
+                <span class="btn-text"><i class="fas fa-sign-in-alt me-1"></i> Sign In</span>
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <i class="fas fa-shield-halved"></i> Secured Access &mdash; RateGain Internal
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const input = document.getElementById('passwordInput');
+    const icon = document.getElementById('toggleIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+document.getElementById('loginForm').addEventListener('submit', function() {
+    document.getElementById('loginBtn').classList.add('loading');
+});
+</script>
+
+</body>
+</html>

@@ -1,12 +1,11 @@
 """
 WFM Report Dashboard - RateGain
-Secure, interactive dashboard for CEO-level productivity analysis.
-Data is stored in local SQLite database - not exposed publicly.
+Interactive dashboard for CEO-level productivity analysis.
+Data is stored in local SQLite database.
 """
 
 import sqlite3
 import os
-import json
 from flask import Flask, render_template, jsonify, request
 
 app = Flask(__name__)
@@ -282,32 +281,6 @@ def api_soho_social_content():
     return jsonify(data)
 
 
-# ─── TA Team ───
-@app.route("/api/ta_open_positions")
-def api_ta_open_positions():
-    conn = get_db()
-    rows = conn.execute("SELECT * FROM ta_open_positions ORDER BY id").fetchall()
-    data = [dict(r) for r in rows]
-    conn.close()
-    return jsonify(data)
-
-
-@app.route("/api/ta_leader_positions")
-def api_ta_leader_positions():
-    conn = get_db()
-    rows = conn.execute("SELECT * FROM ta_leader_positions ORDER BY id").fetchall()
-    data = [dict(r) for r in rows]
-    conn.close()
-    return jsonify(data)
-
-
-@app.route("/api/ta_partner_performance")
-def api_ta_partner_performance():
-    conn = get_db()
-    rows = conn.execute("SELECT * FROM ta_partner_performance ORDER BY id").fetchall()
-    data = [dict(r) for r in rows]
-    conn.close()
-    return jsonify(data)
 
 
 # ─── Customer Experience ───
@@ -331,5 +304,4 @@ def api_customer_experience_notes():
 
 if __name__ == "__main__":
     print("🚀 WFM Dashboard running at http://127.0.0.1:5000")
-    print("🔒 Data is secured in local SQLite database")
     app.run(debug=True, host="127.0.0.1", port=5000)
