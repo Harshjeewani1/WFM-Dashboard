@@ -303,5 +303,5 @@ def api_customer_experience_notes():
 
 
 if __name__ == "__main__":
-    print("🚀 WFM Dashboard running at http://127.0.0.1:5000")
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    print("🚀 WFM Dashboard running at http://127.0.0.1:5050")
+    app.run(debug=True, host="127.0.0.1", port=5050)
