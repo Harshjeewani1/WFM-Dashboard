@@ -16,37 +16,37 @@
         :root {
             /* ── RateGain Brand Primary ── */
             --rg-vivid: #8012FF;           /* Vivid Lavender */
-            --rg-navy: #242452;            /* Midnight Navy */
+            --rg-navy: #1e1f3b;            /* Softer Navy */
             /* ── RateGain Brand Secondary ── */
             --rg-coral: #FF675F;
             --rg-orange: #F09A45;
             --rg-yellow: #FCCE0D;
             --rg-blue: #33ADFF;
-            --rg-dark-purple: #4B139B;
-            --rg-green: #00EF61;
+            --rg-dark-purple: #5C2DB8;
+            --rg-green: #22D66F;
             /* ── Neutrals ── */
             --rg-neutral-1: #F7F7FC;
             --rg-neutral-2: #EFEFEF;
             --rg-neutral-3: #E8E8EA;
             --rg-neutral-4: #D9D9E2;
-            /* ── Surface (Dark dashboard) ── */
-            --rg-bg: #0c0e24;
-            --rg-surface: #121436;
-            --rg-surface-2: #181b42;
-            --rg-surface-3: #1e2252;
-            --rg-border: rgba(128,18,255,0.20);
-            --rg-border-light: rgba(128,18,255,0.30);
+            /* ── Surface (Lighter Dark dashboard) ── */
+            --rg-bg: #14152a;
+            --rg-surface: #1c1e3a;
+            --rg-surface-2: #24264a;
+            --rg-surface-3: #2d305a;
+            --rg-border: rgba(140,120,220,0.16);
+            --rg-border-light: rgba(140,120,220,0.24);
             /* ── Semantic ── */
             --rg-purple: #8012FF;
-            --rg-purple-light: #c9a0ff;
-            --rg-text: #FFFFFF;
-            --rg-text-secondary: #dcdcf0;
-            --rg-text-muted: #a0a0c0;
-            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #4B139B 100%);
+            --rg-purple-light: #d4b8ff;
+            --rg-text: #f0f0f8;
+            --rg-text-secondary: #c8c8e0;
+            --rg-text-muted: #8e8eaf;
+            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #5C2DB8 100%);
             --rg-gradient-accent: linear-gradient(135deg, #8012FF 0%, #33ADFF 100%);
-            --card-shadow: 0 4px 24px rgba(0,0,0,0.35);
-            --card-shadow-hover: 0 8px 40px rgba(128,18,255,0.22);
-            --glow-purple: 0 0 20px rgba(128,18,255,0.18);
+            --card-shadow: 0 2px 16px rgba(0,0,0,0.22);
+            --card-shadow-hover: 0 6px 32px rgba(128,18,255,0.18);
+            --glow-purple: 0 0 16px rgba(128,18,255,0.14);
         }
 
         * { box-sizing: border-box; }
@@ -61,7 +61,7 @@
 
         /* ─── Top Header ─── */
         .top-header {
-            background: linear-gradient(90deg, var(--rg-navy) 0%, #2d2d6b 50%, var(--rg-navy) 100%);
+            background: linear-gradient(90deg, #1a1b36 0%, #262850 50%, #1a1b36 100%);
             padding: 14px 30px;
             display: flex;
             align-items: center;
@@ -106,9 +106,9 @@
             gap: 10px;
         }
         .header-badge {
-            background: rgba(128,18,255,0.18);
-            border: 1px solid rgba(128,18,255,0.35);
-            color: #d4b0ff;
+            background: rgba(128,18,255,0.12);
+            border: 1px solid rgba(128,18,255,0.25);
+            color: #d4bfff;
             padding: 5px 14px;
             border-radius: 20px;
             font-size: 11px;
@@ -144,28 +144,28 @@
             padding: 10px 20px;
             font-size: 13px;
             font-weight: 600;
-            color: var(--rg-text-secondary);
-            border: 2px solid rgba(255,255,255,0.12);
+            color: var(--rg-text-muted);
+            border: 1.5px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.03);
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.25s ease;
             letter-spacing: 0.3px;
             white-space: nowrap;
         }
         .tab-btn:hover {
-            color: #fff;
-            background: rgba(128,18,255,0.12);
-            border-color: rgba(128,18,255,0.5);
+            color: #eee;
+            background: rgba(128,18,255,0.08);
+            border-color: rgba(128,18,255,0.35);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(128,18,255,0.15);
+            box-shadow: 0 2px 8px rgba(128,18,255,0.10);
         }
         .tab-btn.active {
             color: #fff;
             font-weight: 700;
-            background: linear-gradient(135deg, rgba(128,18,255,0.25), rgba(75,19,155,0.35));
-            border-color: var(--rg-vivid);
-            box-shadow: 0 0 12px rgba(128,18,255,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, rgba(128,18,255,0.18), rgba(92,45,184,0.28));
+            border-color: rgba(128,18,255,0.6);
+            box-shadow: 0 0 10px rgba(128,18,255,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
         }
 
         /* ─── Tab Content ─── */
@@ -183,9 +183,9 @@
             padding: 20px;
             box-shadow: var(--card-shadow);
             transition: all 0.3s;
-            border: 1.5px solid var(--rg-border-light);
+            border: 1px solid var(--rg-border-light);
         }
-        .metric-card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); border-color: rgba(128,18,255,0.45); }
+        .metric-card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); border-color: rgba(128,18,255,0.35); }
         .metric-card .metric-icon {
             width: 44px;
             height: 44px;
@@ -200,26 +200,26 @@
         .metric-card .metric-value {
             font-size: 26px;
             font-weight: 800;
-            color: #fff;
+            color: var(--rg-text);
             line-height: 1.1;
         }
         .metric-card .metric-label {
             font-size: 11px;
             color: var(--rg-text-muted);
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
         }
 
         /* ─── Section Titles ─── */
         .section-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            color: #fff;
+            color: var(--rg-text);
             margin-bottom: 16px;
             padding-bottom: 10px;
-            border-bottom: 2px solid rgba(128,18,255,0.25);
+            border-bottom: 1.5px solid rgba(128,18,255,0.18);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -233,10 +233,10 @@
         .table-card {
             background: var(--rg-surface);
             border-radius: 14px;
-            padding: 0;               /* padding now lives inside scroll wrapper */
+            padding: 0;
             box-shadow: var(--card-shadow);
-            border: 1.5px solid var(--rg-border-light);
-            overflow: hidden;          /* round corners clip */
+            border: 1px solid var(--rg-border-light);
+            overflow: hidden;
         }
         .table-card .table-scroll {
             max-height: 520px;
@@ -257,12 +257,11 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 12px 14px !important;
+            padding: 11px 14px !important;
             border: none !important;
-            border-bottom: 2px solid rgba(128,18,255,0.35) !important;
-            border-right: 1px solid rgba(128,18,255,0.12) !important;
+            border-bottom: 1.5px solid rgba(128,18,255,0.22) !important;
+            border-right: 1px solid rgba(128,18,255,0.08) !important;
             white-space: nowrap;
-            /* ▼ STICKY table header inside scroll container ▼ */
             position: sticky;
             top: 0;
             z-index: 3;
@@ -271,14 +270,14 @@
         .table-card tbody td {
             padding: 10px 14px !important;
             vertical-align: middle;
-            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-            border-right: 1px solid rgba(255,255,255,0.04) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+            border-right: 1px solid rgba(255,255,255,0.025) !important;
             color: var(--rg-text-secondary);
             font-weight: 400;
         }
         .table-card tbody td:last-child { border-right: none !important; }
-        .table-card tbody td strong { color: #fff; font-weight: 600; }
-        .table-card tbody tr:hover { background: rgba(128,18,255,0.08) !important; }
+        .table-card tbody td strong { color: var(--rg-text); font-weight: 600; }
+        .table-card tbody tr:hover { background: rgba(128,18,255,0.06) !important; }
         .table-card tbody tr:last-child td { border-bottom: none !important; }
         /* Row count footer inside table-card */
         .table-card .table-footer {
@@ -299,9 +298,9 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .perf-high { background: rgba(0,239,97,0.18); color: #4afa8a; }
-        .perf-mid { background: rgba(252,206,13,0.18); color: #ffe066; }
-        .perf-low { background: rgba(255,103,95,0.18); color: #ff8a82; }
+        .perf-high { background: rgba(34,214,111,0.14); color: #5cffa0; }
+        .perf-mid { background: rgba(252,206,13,0.14); color: #ffe066; }
+        .perf-low { background: rgba(255,103,95,0.14); color: #ff9a92; }
 
         .status-active { color: #4afa8a; font-weight: 600; }
         .status-inactive { color: #ff8a82; font-weight: 600; }
@@ -314,7 +313,7 @@
             border-radius: 14px;
             padding: 20px;
             box-shadow: var(--card-shadow);
-            border: 1.5px solid var(--rg-border-light);
+            border: 1px solid var(--rg-border-light);
             display: flex;
             flex-direction: column;
         }
@@ -326,7 +325,7 @@
             border-radius: 14px;
             padding: 16px 20px;
             box-shadow: var(--card-shadow);
-            border: 1.5px solid var(--rg-border-light);
+            border: 1px solid var(--rg-border-light);
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -368,14 +367,13 @@
 
         /* ─── Notes ─── */
         .note-box {
-            background: rgba(252,206,13,0.08);
-            border-left: 4px solid var(--rg-yellow);
-            border: 1.5px solid rgba(252,206,13,0.15);
-            border-left: 4px solid var(--rg-yellow);
-            border-radius: 0 8px 8px 0;
+            background: rgba(252,206,13,0.06);
+            border: 1px solid rgba(252,206,13,0.12);
+            border-left: 3px solid var(--rg-yellow);
+            border-radius: 0 10px 10px 0;
             padding: 12px 16px;
             font-size: 13px;
-            color: #ffe066;
+            color: #ffe580;
             margin-top: 15px;
         }
         .note-box i { margin-right: 6px; color: var(--rg-yellow); }
@@ -386,7 +384,7 @@
             border-radius: 4px;
             background: var(--rg-surface-3);
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.04);
         }
         .uptime-bar .fill {
             height: 100%;
@@ -409,7 +407,7 @@
             padding: 60px 40px;
             text-align: center;
             box-shadow: var(--card-shadow);
-            border: 1.5px solid var(--rg-border-light);
+            border: 1px solid var(--rg-border-light);
         }
         .placeholder-box i {
             font-size: 48px;
@@ -431,12 +429,11 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 12px 14px !important;
+            padding: 11px 14px !important;
             border: none !important;
-            border-bottom: 2px solid rgba(128,18,255,0.35) !important;
-            border-right: 1px solid rgba(128,18,255,0.12) !important;
+            border-bottom: 1.5px solid rgba(128,18,255,0.22) !important;
+            border-right: 1px solid rgba(128,18,255,0.08) !important;
             white-space: nowrap;
-            /* ▼ STICKY header inside scroll wrapper ▼ */
             position: sticky;
             top: 0;
             z-index: 3;
@@ -445,18 +442,18 @@
         .manager-row {
             cursor: pointer;
             background: var(--rg-surface-2);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             transition: all 0.2s;
         }
-        .manager-row:hover { background: rgba(128,18,255,0.08); }
+        .manager-row:hover { background: rgba(128,18,255,0.06); }
         .manager-row td {
-            padding: 12px 14px !important;
+            padding: 11px 14px !important;
             font-weight: 600;
             font-size: 13px;
             vertical-align: middle;
-            color: #fff;
-            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-            border-right: 1px solid rgba(255,255,255,0.04) !important;
+            color: var(--rg-text);
+            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+            border-right: 1px solid rgba(255,255,255,0.025) !important;
         }
         .manager-row td:last-child { border-right: none !important; }
         .manager-row .expand-icon {
@@ -472,7 +469,7 @@
             margin-right: 10px;
             transition: transform 0.3s;
         }
-        .manager-row.expanded .expand-icon { transform: rotate(90deg); background: var(--rg-coral); }
+        .manager-row.expanded .expand-icon { transform: rotate(90deg); background: #e05a52; }
         .manager-row .mgr-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -492,29 +489,29 @@
             background: var(--rg-surface);
         }
         .emp-sub-table thead th {
-            background: rgba(128,18,255,0.12) !important;
+            background: rgba(128,18,255,0.08) !important;
             color: var(--rg-purple-light) !important;
             font-size: 10.5px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             padding: 8px 10px !important;
-            border-bottom: 1px solid rgba(128,18,255,0.25) !important;
-            border-right: 1px solid rgba(128,18,255,0.10) !important;
+            border-bottom: 1px solid rgba(128,18,255,0.18) !important;
+            border-right: 1px solid rgba(128,18,255,0.06) !important;
         }
         .emp-sub-table thead th:last-child { border-right: none !important; }
         .emp-sub-table tbody td {
             padding: 7px 10px !important;
             font-size: 12.5px;
-            border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-            border-right: 1px solid rgba(255,255,255,0.03) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+            border-right: 1px solid rgba(255,255,255,0.02) !important;
             vertical-align: middle;
             color: var(--rg-text-secondary);
         }
         .emp-sub-table tbody td:last-child { border-right: none !important; }
-        .emp-sub-table tbody td strong { color: #fff; font-weight: 600; }
-        .emp-sub-table tbody tr:hover { background: rgba(128,18,255,0.06) !important; }
-        .emp-sub-table tbody tr:last-child td { border-bottom: 2px solid var(--rg-purple) !important; }
+        .emp-sub-table tbody td strong { color: var(--rg-text); font-weight: 600; }
+        .emp-sub-table tbody tr:hover { background: rgba(128,18,255,0.04) !important; }
+        .emp-sub-table tbody tr:last-child td { border-bottom: 1.5px solid rgba(128,18,255,0.3) !important; }
         .manager-summary-stats {
             display: flex;
             gap: 12px;
@@ -536,7 +533,7 @@
            ══════════════════════════════════════════════════ */
 
         /* Bootstrap Table — force dark on every element */
-        .table { --bs-table-bg: transparent; --bs-table-color: var(--rg-text-secondary); --bs-table-border-color: rgba(255,255,255,0.05); --bs-table-striped-bg: rgba(128,18,255,0.03); --bs-table-hover-bg: rgba(128,18,255,0.07); --bs-table-hover-color: #fff; }
+        .table { --bs-table-bg: transparent; --bs-table-color: var(--rg-text-secondary); --bs-table-border-color: rgba(255,255,255,0.04); --bs-table-striped-bg: rgba(128,18,255,0.02); --bs-table-hover-bg: rgba(128,18,255,0.05); --bs-table-hover-color: var(--rg-text); }
         .table > :not(caption) > * > * { background-color: transparent !important; box-shadow: none !important; }
         .table > thead { background: var(--rg-surface-3); }
         .table > tbody > tr { background: transparent; }
@@ -586,7 +583,7 @@
             background: var(--rg-surface-3) !important;
             color: var(--rg-text-muted) !important;
             border-color: var(--rg-border) !important;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
         /* Bootstrap Inputs & Selects — force dark */
@@ -644,10 +641,10 @@
         }
 
         /* Scrollbars — system-wide dark */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--rg-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--rg-surface-3); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--rg-purple); }
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(140,120,220,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128,18,255,0.45); }
 
         /* Tooltip override */
         .tooltip-inner { background: var(--rg-surface-2); color: var(--rg-text); }
@@ -686,7 +683,7 @@
             color: #fff;
             font-size: 18px;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(128,18,255,0.4);
+            box-shadow: 0 4px 18px rgba(128,18,255,0.3);
             opacity: 0;
             visibility: hidden;
             transform: translateY(10px);
@@ -702,7 +699,7 @@
             transform: translateY(0);
         }
         .back-to-top:hover {
-            box-shadow: 0 6px 28px rgba(128,18,255,0.55);
+            box-shadow: 0 6px 24px rgba(128,18,255,0.4);
             transform: translateY(-2px);
         }
 
@@ -728,8 +725,8 @@
         }
 
         /* ─── Zebra striping for tables ─── */
-        .table-card tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
-        .table-card tbody tr:nth-child(even):hover { background: rgba(128,18,255,0.08) !important; }
+        .table-card tbody tr:nth-child(even) { background: rgba(255,255,255,0.012); }
+        .table-card tbody tr:nth-child(even):hover { background: rgba(128,18,255,0.06) !important; }
 
         /* ─── Compact metric cards on wider screens ─── */
         @media (min-width: 992px) {
@@ -1085,34 +1082,34 @@ Chart.register(ChartDataLabels);
 
 // ═══════════════ GLOBALS ═══════════════
 const COLORS = {
-    primary: '#8012FF',       // Vivid Lavender
-    secondary: '#4B139B',     // Dark Purple
-    accent: '#33ADFF',        // Blue
-    light: '#a95dff',         // Purple Light
-    green: '#00EF61',         // Green
-    orange: '#F09A45',        // Orange
-    yellow: '#FCCE0D',        // Yellow
-    coral: '#FF675F',         // Coral
-    red: '#FF675F',           // Coral (alias)
-    blue: '#33ADFF',          // Blue
-    teal: '#00EF61',          // Green (alias)
-    purple: '#8012FF',        // Vivid Lavender
-    navy: '#242452',          // Midnight Navy
-    palette: ['#8012FF','#33ADFF','#00EF61','#FF675F','#F09A45','#FCCE0D','#4B139B','#a95dff','#33ADFF','#00EF61','#FF675F','#F09A45']
+    primary: '#8b3dff',       // Softer Vivid Lavender
+    secondary: '#5C2DB8',     // Softer Dark Purple
+    accent: '#4db8ff',        // Softer Blue
+    light: '#b87aff',         // Lighter Purple
+    green: '#22D66F',         // Softer Green
+    orange: '#F0A050',        // Softer Orange
+    yellow: '#FFD633',        // Warmer Yellow
+    coral: '#FF7A72',         // Softer Coral
+    red: '#FF7A72',           // Softer Coral (alias)
+    blue: '#4db8ff',          // Softer Blue
+    teal: '#22D66F',          // Softer Green (alias)
+    purple: '#8b3dff',        // Softer Vivid Lavender
+    navy: '#1e1f3b',          // Lighter Navy
+    palette: ['#8b3dff','#4db8ff','#22D66F','#FF7A72','#F0A050','#FFD633','#5C2DB8','#b87aff','#4db8ff','#22D66F','#FF7A72','#F0A050']
 };
 
 // Chart.js dark mode defaults with RateGain theme
-Chart.defaults.color = '#dcdcf0';
-Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-Chart.defaults.plugins.title.color = '#FFFFFF';
-Chart.defaults.plugins.legend.labels.color = '#dcdcf0';
+Chart.defaults.color = '#c8c8e0';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.plugins.title.color = '#f0f0f8';
+Chart.defaults.plugins.legend.labels.color = '#c8c8e0';
 Chart.defaults.scale = Chart.defaults.scale || {};
 Chart.defaults.font = Chart.defaults.font || {};
 Chart.defaults.font.family = "'Manrope', sans-serif";
 
 // Global datalabels defaults — numbers always visible on charts
 Chart.defaults.plugins.datalabels = {
-    color: '#FFFFFF',
+    color: '#f0f0f8',
     font: { weight: '600', size: 11, family: "'Manrope', sans-serif" },
     display: 'auto',       // auto-hide overlapping labels
     anchor: 'end',
