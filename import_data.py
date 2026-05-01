@@ -1,694 +1,528 @@
 """
-Import data from WFM_Report_H1 & Q3.xlsx into SQLite database.
-All data stays private in the local database - not exposed to public.
+Revenue Report — Importer
+Reads `Final_Revenue_Mapping_Cursor.xlsx` and (re)builds `wfm_data.db`.
+
+Tables created:
+  • revenue_hcr   — full headcount roster (Revenue HCR sheet)
+  • revenue_team  — unified per-manager team performance (7 manager tabs)
+  • revenue_meta  — small KV store (e.g. last_loaded_at)
+
+Drops the old WFM tables (cost_summary, dadk_*, productivity_*, adara_*,
+devops_*, it_helpdesk*, soho_*, customer_experience*) so the DB reflects
+only the new structure.
 """
-
-import sqlite3
-import openpyxl
 import os
-import datetime
+import sqlite3
+import datetime as dt
+from typing import Any
 
-EXCEL_PATH = "/Users/harshjeewani/Library/CloudStorage/OneDrive-RateGainTravelTechnologies/WFM_Report_H1 & Q3.xlsx"
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wfm_data.db")
+import openpyxl
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+XLSX_PATH = os.path.join(HERE, "Final_Revenue_Mapping_Cursor.xlsx")
+GRR_NRR_XLSX = os.path.join(HERE, "GRR_NRR_Account_Analysis.xlsx")
+LEADER_PERF_XLSX = os.path.join(HERE, "Rev_Perf_Leader.xlsx")
+DB_PATH = os.path.join(HERE, "wfm_data.db")
+
+# Source-file leader names (sometimes include middle names / spelling variants)
+# → canonical names used across the dashboard.
+LEADER_NAME_MAP = {
+    "Anurag Vinod Jain":             "Anurag Jain",
+    "Anurag Jain":                   "Anurag Jain",
+    "Keith Christopher Toby March":  "Toby March",
+    "Toby March":                    "Toby March",
+    "Sanchit Garg":                  "Sanchit Garg",
+    "Ashish Sikka":                  "Ashish Sikka",
+    "Vinay Varma":                   "Vinay Verma",   # spelling variant
+    "Vinay Verma":                   "Vinay Verma",
+    "Humberto Bifani":               "Humberto Bifani",
+    "Humberto L Bifani":             "Humberto Bifani",
+    "Carla Sue Shaw":                "Carla Shaw",
+    "Carla Shaw":                    "Carla Shaw",
+    # Newcomers from Rev_Perf_Leader.xlsx (regions / additional managers)
+    "Yogeesh Chandra":               "Yogeesh Chandra",
+    "EUROPE":                        "Ashish Sikka",   # EUROPE region rolls up to Ashish Sikka
+}
+
+MANAGER_TABS = [
+    "Anurag Jain",
+    "Carla Shaw",
+    "Ashish Sikka",
+    "Humberto Bifani",
+    "Sanchit Garg",
+    "Toby March",
+    "Vinay Verma",
+]
+
+OLD_TABLES = [
+    "cost_summary",
+    "dadk_ctc",
+    "dadk_headcount",
+    "dadk_new_joiners",
+    "productivity_emp",
+    "adara_devops",
+    "devops_uptime",
+    "devops_tickets",
+    "it_helpdesk",
+    "it_helpdesk_notes",
+    "soho_monitoring",
+    "soho_client_success",
+    "soho_social_content",
+    "customer_experience",
+    "customer_experience_notes",
+]
 
 
-def safe_float(val):
-    if val is None or val == '-' or val == ' ' or val == '':
+# ─────────────────────────── helpers ───────────────────────────
+def to_num(v: Any):
+    """Convert numeric-ish to float; preserve None for blanks/'-'."""
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if s == "" or s == "-" or s.lower() == "nan":
         return None
     try:
-        return float(val)
-    except (ValueError, TypeError):
+        return float(s.replace(",", ""))
+    except ValueError:
         return None
 
 
-def safe_str(val):
-    if val is None:
+def to_str(v: Any):
+    if v is None:
         return None
-    return str(val).strip()
+    if isinstance(v, dt.datetime):
+        return v.strftime("%Y-%m-%d")
+    s = str(v).strip()
+    return s if s else None
 
 
-def safe_date(val):
-    if val is None or val == '-' or val == ' ':
-        return None
-    if isinstance(val, datetime.datetime):
-        return val.strftime('%Y-%m-%d')
-    return str(val)
+def is_total_row(team_val: str | None, emp_id_val: Any) -> bool:
+    """Detect subtotal / grand-total rows (no Emp Id, Team has 'Total')."""
+    if team_val is None:
+        return False
+    t = str(team_val).strip().lower()
+    if t.endswith("total") or t == "grand total":
+        return True
+    # Some sheets put empty Emp Id rows that aren't totals — keep those as data
+    return False
 
 
-def create_tables(conn):
-    c = conn.cursor()
+# ─────────────────────────── schema ───────────────────────────
+DDL_HCR = """
+CREATE TABLE revenue_hcr (
+    row_order            INTEGER PRIMARY KEY,
+    employee_id          TEXT,
+    full_name            TEXT,
+    doj                  TEXT,
+    tenure               TEXT,
+    official_email       TEXT,
+    hrbp_name            TEXT,
+    status               TEXT,
+    gender               TEXT,
+    leader               TEXT,
+    emp_type             TEXT,
+    manager_name         TEXT,
+    entity               TEXT,
+    division             TEXT,
+    sub_division         TEXT,
+    department           TEXT,
+    sub_department       TEXT,
+    designation          TEXT,
+    office_location      TEXT,
+    direct_manager_email TEXT,
+    contribution_level   TEXT,
+    date_of_exit         TEXT,
+    employee_subtype     TEXT,
+    band                 TEXT,
+    q4_remarks_hr        TEXT,
+    q4_remarks           TEXT,
+    q3_remarks_aditi     TEXT
+);
+"""
 
-    # Cost Summary
-    c.execute('''CREATE TABLE IF NOT EXISTS cost_summary (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        serial_no INTEGER,
-        team_manager TEXT,
-        product_team TEXT,
-        leader TEXT,
-        num_employees_q2 INTEGER,
-        num_employees_q3 INTEGER,
-        cumulative_cost_q3 REAL,
-        cumulative_cost_h1 REAL,
-        cumulative_cost_q2 REAL,
-        cumulative_cost_q1 REAL,
-        cost_per_emp_q3 REAL,
-        cost_per_emp_q2 REAL,
-        remarks TEXT
-    )''')
+DDL_TEAM = """
+CREATE TABLE revenue_team (
+    row_order               INTEGER PRIMARY KEY AUTOINCREMENT,
+    manager_tab             TEXT NOT NULL,    -- "Anurag Jain", etc.
+    team                    TEXT,
+    status                  TEXT,             -- Active / Inactive / Terminated / (subtotal)
+    emp_id                  TEXT,
+    emp_name                TEXT,
+    tenure_ymd              TEXT,
+    budget_fy_25_26         REAL,
+    budget_ytd_25_26        REAL,
+    new_sales_25_26         REAL,
+    ach_pct_25_26           REAL,
+    salary_25_26            REAL,
+    salary_multiple_25_26   REAL,
+    total_expenses_25_26    REAL,
+    sales_multiple_25_26    REAL,
+    grr                     REAL,
+    nrr                     REAL,
+    q4_pipe_target          REAL,
+    q4_pipe_creation        REAL,
+    q4_pipe_achievement_pct REAL,
+    q3_remarks              TEXT,
+    q4_remarks              TEXT,
+    is_total                INTEGER NOT NULL DEFAULT 0,  -- 0 = data, 1 = team subtotal, 2 = grand total
+    sort_order              INTEGER NOT NULL DEFAULT 0
+);
+"""
 
-    # DA&DK Pivot - CTC
-    c.execute('''CREATE TABLE IF NOT EXISTS dadk_ctc (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        row_label TEXT,
-        apr_25 REAL, may_25 REAL, jun_25 REAL, jul_25 REAL,
-        aug_25 REAL, sep_25 REAL, oct_25 REAL, nov_25 REAL,
-        dec_25 REAL, jan_26 REAL, feb_26 REAL, mar_26 REAL,
-        variance REAL
-    )''')
+DDL_META = """
+CREATE TABLE revenue_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+"""
 
-    # DA&DK Pivot - Head Count
-    c.execute('''CREATE TABLE IF NOT EXISTS dadk_headcount (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        row_label TEXT,
-        apr_25 INTEGER, may_25 INTEGER, jun_25 INTEGER, jul_25 INTEGER,
-        aug_25 INTEGER, sep_25 INTEGER, oct_25 INTEGER, nov_25 INTEGER,
-        dec_25 INTEGER, jan_26 INTEGER, feb_26 INTEGER, mar_26 INTEGER
-    )''')
+DDL_ACCOUNTS = """
+CREATE TABLE account_analysis (
+    row_order        INTEGER PRIMARY KEY AUTOINCREMENT,
+    account          TEXT,
+    product          TEXT,
+    am               TEXT,
+    rev_24_25        REAL,
+    churn            REAL,
+    grr              REAL,
+    downsell         REAL,
+    upsell           REAL,
+    nrr              REAL,
+    new_revenue      REAL,
+    rev_25_26        REAL
+);
+"""
 
-    # DA&DK Pivot - New Joiners
-    c.execute('''CREATE TABLE IF NOT EXISTS dadk_new_joiners (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        designation TEXT,
-        headcount INTEGER
-    )''')
-
-    # Productivity Emp
-    c.execute('''CREATE TABLE IF NOT EXISTS productivity_emp (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        emp_id TEXT,
-        employee_name TEXT,
-        joining_date TEXT,
-        designation TEXT,
-        tenure TEXT,
-        shift_role TEXT,
-        team_name TEXT,
-        manager_name TEXT,
-        team_lead_by TEXT,
-        q1_performance REAL,
-        q2_performance REAL,
-        q3_performance REAL,
-        exit_type TEXT,
-        last_working_day TEXT,
-        comment TEXT,
-        q3_ctc REAL,
-        status TEXT,
-        date_of_exit TEXT,
-        status_q_wise TEXT,
-        take TEXT
-    )''')
-
-    # Adara DevOps
-    c.execute('''CREATE TABLE IF NOT EXISTS adara_devops (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        emp_id TEXT,
-        employee_name TEXT,
-        joining_date TEXT,
-        tenure TEXT,
-        designation TEXT,
-        location TEXT,
-        utilisation REAL,
-        comments TEXT
-    )''')
-
-    # DevOps Shared Services - Uptime
-    c.execute('''CREATE TABLE IF NOT EXISTS devops_uptime (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        system_product TEXT,
-        availability_level REAL,
-        total_downtime REAL,
-        downtime_per_year_hrs REAL,
-        downtime_per_quarter_hrs REAL,
-        downtime_per_month_hrs REAL
-    )''')
-
-    # DevOps Shared Services - Tickets
-    c.execute('''CREATE TABLE IF NOT EXISTS devops_tickets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        system_product TEXT,
-        availability_level REAL,
-        total_downtime REAL,
-        downtime_per_year_hrs REAL,
-        est_tickets_per_year REAL,
-        est_tickets_per_quarter REAL,
-        est_tickets_per_month REAL,
-        est_tickets_per_week REAL
-    )''')
-
-    # IT HelpDesk
-    c.execute('''CREATE TABLE IF NOT EXISTS it_helpdesk (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        month TEXT,
-        num_tickets INTEGER,
-        tickets_per_engineer REAL,
-        num_emp REAL
-    )''')
-
-    # IT HelpDesk Notes
-    c.execute('''CREATE TABLE IF NOT EXISTS it_helpdesk_notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        note TEXT
-    )''')
-
-    # SoHo Monitoring
-    c.execute('''CREATE TABLE IF NOT EXISTS soho_monitoring (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        monitor TEXT,
-        yearmonth TEXT,
-        index_score REAL,
-        handling_time_score REAL,
-        response_rate_score REAL
-    )''')
-
-    # SoHo Client Success
-    c.execute('''CREATE TABLE IF NOT EXISTS soho_client_success (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cs_team TEXT,
-        high_risk_pct REAL,
-        high_risk_clients REAL,
-        recent_escalations REAL,
-        total_cancelations REAL,
-        nps_bcv_score REAL,
-        nps_team_score REAL,
-        avg_client_age REAL,
-        upsells REAL,
-        total_score REAL,
-        average REAL,
-        target REAL
-    )''')
-
-    # SoHo Social Content Strategy
-    c.execute('''CREATE TABLE IF NOT EXISTS soho_social_content (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        team_member TEXT,
-        escalations REAL,
-        nps_score REAL,
-        index_score REAL,
-        average REAL,
-        target REAL
-    )''')
-
-    # Customer Experience
-    c.execute('''CREATE TABLE IF NOT EXISTS customer_experience (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        serial_no INTEGER,
-        emp_id INTEGER,
-        name TEXT,
-        art_l1_hrs REAL,
-        reopen_pct REAL,
-        nps REAL,
-        csat REAL,
-        quality REAL,
-        productivity_w1 REAL,
-        productivity_w2 REAL,
-        productivity_w3 REAL,
-        productivity_w4 REAL,
-        productivity_w5 REAL,
-        total_tickets REAL,
-        avg_daily_tickets REAL,
-        working_days REAL
-    )''')
-
-    # Customer Experience Notes
-    c.execute('''CREATE TABLE IF NOT EXISTS customer_experience_notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        note TEXT
-    )''')
-
-    # TA Team - Open Positions
-    c.execute('''CREATE TABLE IF NOT EXISTS ta_open_positions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        month TEXT,
-        new_count INTEGER,
-        replacement_count INTEGER,
-        new_pct REAL,
-        replacement_pct REAL,
-        offered_new_pct REAL,
-        offered_replacement_pct REAL,
-        offered_from_closing INTEGER
-    )''')
-
-    # TA Team - Leader Positions
-    c.execute('''CREATE TABLE IF NOT EXISTS ta_leader_positions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        leader_name TEXT,
-        open_positions INTEGER
-    )''')
-
-    # TA Team - Partner Performance
-    c.execute('''CREATE TABLE IF NOT EXISTS ta_partner_performance (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ta_partner TEXT,
-        offered INTEGER,
-        joinings INTEGER,
-        avg_time_to_offer INTEGER
-    )''')
-
-    conn.commit()
+DDL_LEADER_PERF = """
+CREATE TABLE leader_perf_pivot (
+    row_order            INTEGER PRIMARY KEY AUTOINCREMENT,
+    leader_raw           TEXT,
+    leader               TEXT,           -- canonical name from LEADER_NAME_MAP
+    team                 TEXT,
+    is_leader_total      INTEGER NOT NULL DEFAULT 0,  -- 1 for "{Leader} Total" rows
+    is_grand_total       INTEGER NOT NULL DEFAULT 0,
+    budget_fy_25_26      REAL,
+    budget_ytd_25_26     REAL,
+    new_sales_25_26      REAL,
+    ach_pct_25_26        REAL,
+    salary_25_26         REAL,
+    salary_mult_25_26    REAL,
+    commission_25_26     REAL,
+    travel_exp_25_26     REAL,
+    total_expenses_25_26 REAL,
+    sales_mult_25_26     REAL,
+    ach_pct_24_25        REAL,
+    salary_mult_24_25    REAL,
+    sales_mult_24_25     REAL
+);
+"""
 
 
-def import_cost_summary(wb, conn):
-    ws = wb["Cost Summary"]
-    c = conn.cursor()
-    c.execute("DELETE FROM cost_summary")
+# ─────────────────────────── importers ───────────────────────────
+def import_hcr(ws, conn):
+    """Import the 'Revenue HCR' sheet."""
+    cur = conn.cursor()
+    inserted = 0
 
-    for row in range(3, 23):  # rows 3-22
-        serial_no = ws.cell(row=row, column=1).value
-        if serial_no is None:
+    def cell(row, i):
+        return row[i] if i < len(row) else None
+
+    for idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        # Skip fully empty rows
+        if not any(c is not None and str(c).strip() != "" for c in row):
             continue
-        c.execute('''INSERT INTO cost_summary
-            (serial_no, team_manager, product_team, leader, num_employees_q2, num_employees_q3,
-             cumulative_cost_q3, cumulative_cost_h1, cumulative_cost_q2, cumulative_cost_q1,
-             cost_per_emp_q3, cost_per_emp_q2, remarks)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            serial_no,
-            safe_str(ws.cell(row=row, column=2).value),
-            safe_str(ws.cell(row=row, column=3).value),
-            safe_str(ws.cell(row=row, column=4).value),
-            ws.cell(row=row, column=5).value,
-            ws.cell(row=row, column=6).value,
-            safe_float(ws.cell(row=row, column=7).value),
-            safe_float(ws.cell(row=row, column=8).value),
-            safe_float(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=10).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-            safe_str(ws.cell(row=row, column=13).value)
-        ))
-    conn.commit()
-    print(f"  Cost Summary: {c.rowcount} rows imported")
+        cur.execute(
+            """INSERT INTO revenue_hcr (
+                row_order, employee_id, full_name, doj, tenure, official_email,
+                hrbp_name, status, gender, leader, emp_type, manager_name,
+                entity, division, sub_division, department, sub_department,
+                designation, office_location, direct_manager_email, contribution_level,
+                date_of_exit, employee_subtype, band, q4_remarks_hr, q4_remarks,
+                q3_remarks_aditi
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                idx,
+                to_str(cell(row, 0)),
+                to_str(cell(row, 1)),
+                to_str(cell(row, 2)),
+                to_str(cell(row, 3)),
+                to_str(cell(row, 4)),
+                to_str(cell(row, 5)),
+                to_str(cell(row, 6)),
+                to_str(cell(row, 7)),
+                to_str(cell(row, 8)),
+                to_str(cell(row, 9)),
+                to_str(cell(row, 10)),
+                to_str(cell(row, 11)),
+                to_str(cell(row, 12)),
+                to_str(cell(row, 13)),
+                to_str(cell(row, 14)),
+                to_str(cell(row, 15)),
+                to_str(cell(row, 16)),
+                to_str(cell(row, 17)),
+                to_str(cell(row, 18)),
+                to_str(cell(row, 19)),
+                to_str(cell(row, 20)),
+                to_str(cell(row, 21)),
+                to_str(cell(row, 22)),
+                to_str(cell(row, 23)),
+                to_str(cell(row, 24)),
+                to_str(cell(row, 25)),
+            ),
+        )
+        inserted += 1
+    print(f"  ✓ revenue_hcr: {inserted} rows")
 
 
-def import_dadk_pivot(wb, conn):
-    ws = wb["DA&DK_Pivot"]
-    c = conn.cursor()
-
-    # CTC rows 5-7
-    c.execute("DELETE FROM dadk_ctc")
-    for row in range(5, 8):
-        label = safe_str(ws.cell(row=row, column=1).value)
-        if label is None:
+def find_col(headers: list[str], *needles: str) -> int | None:
+    """Locate a column index whose header matches any needle (case-insensitive substring)."""
+    for i, h in enumerate(headers):
+        if h is None:
             continue
-        c.execute('''INSERT INTO dadk_ctc
-            (row_label, apr_25, may_25, jun_25, jul_25, aug_25, sep_25,
-             oct_25, nov_25, dec_25, jan_26, feb_26, mar_26, variance)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            label,
-            safe_float(ws.cell(row=row, column=2).value),
-            safe_float(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-            safe_float(ws.cell(row=row, column=5).value),
-            safe_float(ws.cell(row=row, column=6).value),
-            safe_float(ws.cell(row=row, column=7).value),
-            safe_float(ws.cell(row=row, column=8).value),
-            safe_float(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=10).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-            safe_float(ws.cell(row=row, column=13).value),
-            safe_float(ws.cell(row=row, column=14).value),
-        ))
+        hl = str(h).strip().lower().replace("\n", " ")
+        for n in needles:
+            if n.lower() in hl:
+                return i
+    return None
 
-    # Head Count rows 11-13
-    c.execute("DELETE FROM dadk_headcount")
-    for row in range(11, 14):
-        label = safe_str(ws.cell(row=row, column=1).value)
-        if label is None:
+
+def import_leader_perf(conn):
+    """Import the per-leader pivot (Rev_Perf_Leader.xlsx) — drives the Leaderboard view."""
+    if not os.path.exists(LEADER_PERF_XLSX):
+        print(f"  ⚠ {LEADER_PERF_XLSX} not found, skipping leader_perf_pivot import")
+        return
+    wb = openpyxl.load_workbook(LEADER_PERF_XLSX, data_only=True)
+    ws = wb.active
+    cur = conn.cursor()
+    inserted = 0
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
             continue
-        c.execute('''INSERT INTO dadk_headcount
-            (row_label, apr_25, may_25, jun_25, jul_25, aug_25, sep_25,
-             oct_25, nov_25, dec_25, jan_26, feb_26, mar_26)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            label,
-            ws.cell(row=row, column=2).value,
-            ws.cell(row=row, column=3).value,
-            ws.cell(row=row, column=4).value,
-            ws.cell(row=row, column=5).value,
-            ws.cell(row=row, column=6).value,
-            ws.cell(row=row, column=7).value,
-            ws.cell(row=row, column=8).value,
-            ws.cell(row=row, column=9).value,
-            ws.cell(row=row, column=10).value,
-            ws.cell(row=row, column=11).value,
-            ws.cell(row=row, column=12).value,
-            ws.cell(row=row, column=13).value,
-        ))
+        leader_raw = to_str(row[0])
+        is_grand  = leader_raw and leader_raw.lower() == "grand total"
+        is_total  = bool(leader_raw and leader_raw.endswith(" Total") and not is_grand)
+        # For totals, the actual leader name strips the trailing " Total"
+        if is_total:
+            leader_name_only = leader_raw[:-6].strip()
+        elif is_grand:
+            leader_name_only = None
+        else:
+            leader_name_only = leader_raw
+        leader_canonical = LEADER_NAME_MAP.get(leader_name_only, leader_name_only) if leader_name_only else None
+        cur.execute(
+            """INSERT INTO leader_perf_pivot (
+                leader_raw, leader, team, is_leader_total, is_grand_total,
+                budget_fy_25_26, budget_ytd_25_26, new_sales_25_26, ach_pct_25_26,
+                salary_25_26, salary_mult_25_26, commission_25_26, travel_exp_25_26,
+                total_expenses_25_26, sales_mult_25_26,
+                ach_pct_24_25, salary_mult_24_25, sales_mult_24_25
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                leader_raw, leader_canonical, to_str(row[1]),
+                1 if is_total else 0, 1 if is_grand else 0,
+                to_num(row[2]),  to_num(row[3]),  to_num(row[4]),  to_num(row[5]),
+                to_num(row[6]),  to_num(row[7]),  to_num(row[8]),  to_num(row[9]),
+                to_num(row[10]), to_num(row[11]),
+                to_num(row[12]), to_num(row[13]), to_num(row[14]),
+            ),
+        )
+        inserted += 1
+    print(f"  ✓ leader_perf_pivot: {inserted} rows")
 
-    # New Joiners rows 19-29
-    c.execute("DELETE FROM dadk_new_joiners")
-    for row in range(19, 31):
-        designation = safe_str(ws.cell(row=row, column=3).value)
-        hc = ws.cell(row=row, column=4).value
-        if designation and hc is not None:
-            c.execute("INSERT INTO dadk_new_joiners (designation, headcount) VALUES (?,?)",
-                      (designation, hc))
 
-    conn.commit()
-    print("  DA&DK Pivot: imported")
-
-
-def import_productivity_emp(wb, conn):
-    ws = wb["Productivity_Emp"]
-    c = conn.cursor()
-    c.execute("DELETE FROM productivity_emp")
-
-    count = 0
-    for row in range(2, ws.max_row + 1):
-        emp_id = ws.cell(row=row, column=1).value
-        if emp_id is None:
+def import_account_analysis(conn):
+    """Import the GRR/NRR account-level analysis Excel."""
+    if not os.path.exists(GRR_NRR_XLSX):
+        print(f"  ⚠ {GRR_NRR_XLSX} not found, skipping account_analysis import")
+        return
+    wb = openpyxl.load_workbook(GRR_NRR_XLSX, data_only=True)
+    sheet = "Export" if "Export" in wb.sheetnames else wb.sheetnames[0]
+    ws = wb[sheet]
+    cur = conn.cursor()
+    inserted = 0
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not any(c is not None and str(c).strip() != "" for c in row):
             continue
-        c.execute('''INSERT INTO productivity_emp
-            (emp_id, employee_name, joining_date, designation, tenure, shift_role,
-             team_name, manager_name, team_lead_by, q1_performance, q2_performance,
-             q3_performance, exit_type, last_working_day, comment, q3_ctc, status,
-             date_of_exit, status_q_wise, take)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            safe_str(emp_id),
-            safe_str(ws.cell(row=row, column=2).value),
-            safe_date(ws.cell(row=row, column=3).value),
-            safe_str(ws.cell(row=row, column=4).value),
-            safe_str(ws.cell(row=row, column=5).value),
-            safe_str(ws.cell(row=row, column=6).value),
-            safe_str(ws.cell(row=row, column=7).value),
-            safe_str(ws.cell(row=row, column=8).value),
-            safe_str(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-            safe_float(ws.cell(row=row, column=13).value),
-            safe_str(ws.cell(row=row, column=14).value),
-            safe_date(ws.cell(row=row, column=15).value),
-            safe_str(ws.cell(row=row, column=16).value),
-            safe_float(ws.cell(row=row, column=17).value),
-            safe_str(ws.cell(row=row, column=18).value),
-            safe_date(ws.cell(row=row, column=19).value),
-            safe_str(ws.cell(row=row, column=20).value),
-            safe_str(ws.cell(row=row, column=21).value),
-        ))
-        count += 1
-    conn.commit()
-    print(f"  Productivity_Emp: {count} rows imported")
+        cur.execute(
+            """INSERT INTO account_analysis (
+                account, product, am, rev_24_25, churn, grr,
+                downsell, upsell, nrr, new_revenue, rev_25_26
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                to_str(row[0]),  to_str(row[1]),  to_str(row[2]),
+                to_num(row[3]),  to_num(row[4]),  to_num(row[5]),
+                to_num(row[6]),  to_num(row[7]),  to_num(row[8]),
+                to_num(row[9]),  to_num(row[10]),
+            ),
+        )
+        inserted += 1
+    print(f"  ✓ account_analysis: {inserted} accounts")
 
 
-def import_adara_devops(wb, conn):
-    ws = wb["Adara-Devops"]
-    c = conn.cursor()
-    c.execute("DELETE FROM adara_devops")
+def import_manager(ws, manager_tab: str, conn):
+    """Import a manager tab into revenue_team."""
+    cur = conn.cursor()
 
-    count = 0
-    for row in range(3, ws.max_row + 1):
-        emp_id = ws.cell(row=row, column=1).value
-        if emp_id is None:
+    # Read the (multi-line) header row
+    raw_headers = [c.value for c in ws[1]]
+
+    # Map column positions — header text varies slightly across sheets
+    col = {
+        "team":   0,
+        "status": 1,
+        "empid":  2,
+        "name":   3,
+        "tenure": 4,
+        "budget_fy":          find_col(raw_headers, "Budget FY"),
+        "budget_ytd":         find_col(raw_headers, "Budget YTD"),
+        "new_sales":          find_col(raw_headers, "New Sales"),
+        "ach_25":             find_col(raw_headers, "Ach % (25-26)", "Ach% (25-26)"),
+        "salary_25":          find_col(raw_headers, "Salary\nFY 25-26", "Salary FY"),
+        "sal_mult_25":        find_col(raw_headers, "Salary Multiple (25-26)"),
+        "expenses":           find_col(raw_headers, "Total Expenses"),
+        "sales_mult_25":      find_col(raw_headers, "Sales Multiple (25-26)"),
+        "grr":                find_col(raw_headers, "GRR"),
+        "nrr":                find_col(raw_headers, "NRR"),
+        "q4_target":          find_col(raw_headers, "Q4 Pipe Target"),
+        "q4_creation":        find_col(raw_headers, "Q4 Pipe Creation"),
+        "q4_pipe_ach":        find_col(raw_headers, "Q4 Pipe Achievement"),
+        "q3_remarks":         find_col(raw_headers, "Q3 Remarks"),
+        "q4_remarks":         find_col(raw_headers, "Q4 Remarks (HR-calibrated)", "Q4 Remarks"),
+    }
+
+    def cell(row, key):
+        i = col.get(key)
+        if i is None or i >= len(row):
+            return None
+        return row[i]
+
+    inserted = 0
+    sort_order = 0
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not any(c is not None and str(c).strip() != "" for c in row):
             continue
-        c.execute('''INSERT INTO adara_devops
-            (emp_id, employee_name, joining_date, tenure, designation, location,
-             utilisation, comments)
-            VALUES (?,?,?,?,?,?,?,?)''', (
-            safe_str(emp_id),
-            safe_str(ws.cell(row=row, column=2).value),
-            safe_date(ws.cell(row=row, column=3).value),
-            safe_str(ws.cell(row=row, column=4).value),
-            safe_str(ws.cell(row=row, column=5).value),
-            safe_str(ws.cell(row=row, column=6).value),
-            safe_float(ws.cell(row=row, column=7).value),
-            safe_str(ws.cell(row=row, column=8).value),
-        ))
-        count += 1
-    conn.commit()
-    print(f"  Adara-Devops: {count} rows imported")
+        sort_order += 1
+
+        team_val = cell(row, "team")
+        team_str = to_str(team_val)
+        emp_id_val = cell(row, "empid")
+        is_total = 0
+        if team_str:
+            tl = team_str.lower()
+            if tl == "grand total":
+                is_total = 2
+            elif tl.endswith("total"):
+                is_total = 1
+
+        cur.execute(
+            """INSERT INTO revenue_team (
+                manager_tab, team, status, emp_id, emp_name, tenure_ymd,
+                budget_fy_25_26, budget_ytd_25_26, new_sales_25_26, ach_pct_25_26,
+                salary_25_26, salary_multiple_25_26, total_expenses_25_26, sales_multiple_25_26,
+                grr, nrr, q4_pipe_target, q4_pipe_creation, q4_pipe_achievement_pct,
+                q3_remarks, q4_remarks,
+                is_total, sort_order
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                manager_tab,
+                team_str,
+                to_str(cell(row, "status")),
+                to_str(emp_id_val),
+                to_str(cell(row, "name")),
+                to_str(cell(row, "tenure")),
+                to_num(cell(row, "budget_fy")),
+                to_num(cell(row, "budget_ytd")),
+                to_num(cell(row, "new_sales")),
+                to_num(cell(row, "ach_25")),
+                to_num(cell(row, "salary_25")),
+                to_num(cell(row, "sal_mult_25")),
+                to_num(cell(row, "expenses")),
+                to_num(cell(row, "sales_mult_25")),
+                to_num(cell(row, "grr")),
+                to_num(cell(row, "nrr")),
+                to_num(cell(row, "q4_target")),
+                to_num(cell(row, "q4_creation")),
+                to_num(cell(row, "q4_pipe_ach")),
+                to_str(cell(row, "q3_remarks")),
+                to_str(cell(row, "q4_remarks")),
+                is_total,
+                sort_order,
+            ),
+        )
+        inserted += 1
+    print(f"  ✓ revenue_team [{manager_tab}]: {inserted} rows")
 
 
-def import_devops_shared(wb, conn):
-    ws = wb["DevOps – Shared Services"]
-    c = conn.cursor()
-
-    # Uptime rows 6-13
-    c.execute("DELETE FROM devops_uptime")
-    for row in range(6, 14):
-        product = safe_str(ws.cell(row=row, column=1).value)
-        if product is None:
-            continue
-        c.execute('''INSERT INTO devops_uptime
-            (system_product, availability_level, total_downtime,
-             downtime_per_year_hrs, downtime_per_quarter_hrs, downtime_per_month_hrs)
-            VALUES (?,?,?,?,?,?)''', (
-            product,
-            safe_float(ws.cell(row=row, column=2).value),
-            safe_float(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-            safe_float(ws.cell(row=row, column=5).value),
-            safe_float(ws.cell(row=row, column=6).value),
-        ))
-
-    # Tickets rows 38-47
-    c.execute("DELETE FROM devops_tickets")
-    for row in range(38, 48):
-        product = safe_str(ws.cell(row=row, column=1).value)
-        if product is None and ws.cell(row=row, column=5).value is None:
-            continue
-        c.execute('''INSERT INTO devops_tickets
-            (system_product, availability_level, total_downtime,
-             downtime_per_year_hrs, est_tickets_per_year, est_tickets_per_quarter,
-             est_tickets_per_month, est_tickets_per_week)
-            VALUES (?,?,?,?,?,?,?,?)''', (
-            product,
-            safe_float(ws.cell(row=row, column=2).value),
-            safe_float(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-            safe_float(ws.cell(row=row, column=5).value),
-            safe_float(ws.cell(row=row, column=6).value),
-            safe_float(ws.cell(row=row, column=7).value),
-            safe_float(ws.cell(row=row, column=8).value),
-        ))
-
-    conn.commit()
-    print("  DevOps Shared Services: imported")
-
-
-def import_it_helpdesk(wb, conn):
-    ws = wb["IT HelpDesk"]
-    c = conn.cursor()
-    c.execute("DELETE FROM it_helpdesk")
-    c.execute("DELETE FROM it_helpdesk_notes")
-
-    count = 0
-    for row in range(2, 20):  # rows 2-19
-        month = safe_str(ws.cell(row=row, column=1).value)
-        if month is None:
-            continue
-        c.execute('''INSERT INTO it_helpdesk
-            (month, num_tickets, tickets_per_engineer, num_emp)
-            VALUES (?,?,?,?)''', (
-            month,
-            ws.cell(row=row, column=2).value,
-            safe_float(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-        ))
-        count += 1
-
-    # Notes
-    for row in [37, 38, 39]:
-        note = safe_str(ws.cell(row=row, column=2).value)
-        if note:
-            c.execute("INSERT INTO it_helpdesk_notes (note) VALUES (?)", (note,))
-
-    conn.commit()
-    print(f"  IT HelpDesk: {count} rows imported")
-
-
-def import_soho(wb, conn):
-    ws = wb["SoHo Team"]
-    c = conn.cursor()
-    c.execute("DELETE FROM soho_monitoring")
-    c.execute("DELETE FROM soho_client_success")
-    c.execute("DELETE FROM soho_social_content")
-
-    # Monitoring data (cols A-E)
-    count = 0
-    for row in range(3, 27):
-        monitor = safe_str(ws.cell(row=row, column=1).value)
-        if monitor is None:
-            continue
-        c.execute('''INSERT INTO soho_monitoring
-            (monitor, yearmonth, index_score, handling_time_score, response_rate_score)
-            VALUES (?,?,?,?,?)''', (
-            monitor,
-            safe_str(ws.cell(row=row, column=2).value),
-            safe_float(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-            safe_float(ws.cell(row=row, column=5).value),
-        ))
-        count += 1
-
-    # Client Success (cols G-R, rows 3-8)
-    for row in range(3, 9):
-        team = safe_str(ws.cell(row=row, column=7).value)
-        if team is None:
-            continue
-        c.execute('''INSERT INTO soho_client_success
-            (cs_team, high_risk_pct, high_risk_clients, recent_escalations,
-             total_cancelations, nps_bcv_score, nps_team_score, avg_client_age,
-             upsells, total_score, average, target)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            team,
-            safe_float(ws.cell(row=row, column=8).value),
-            safe_float(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=10).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-            safe_float(ws.cell(row=row, column=13).value),
-            safe_float(ws.cell(row=row, column=14).value),
-            safe_float(ws.cell(row=row, column=15).value),
-            safe_float(ws.cell(row=row, column=16).value),
-            safe_float(ws.cell(row=row, column=17).value),
-            safe_float(ws.cell(row=row, column=18).value),
-        ))
-
-    # Social Content Strategy (rows 15-21)
-    for row in range(15, 22):
-        team_member = safe_str(ws.cell(row=row, column=7).value)
-        if team_member is None:
-            continue
-        c.execute('''INSERT INTO soho_social_content
-            (team_member, escalations, nps_score, index_score, average, target)
-            VALUES (?,?,?,?,?,?)''', (
-            team_member,
-            safe_float(ws.cell(row=row, column=8).value),
-            safe_float(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=10).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-        ))
-
-    conn.commit()
-    print(f"  SoHo Team: {count} monitoring rows imported")
-
-
-def import_customer_experience(wb, conn):
-    ws = wb["Customer Experience - Tushar"]
-    c = conn.cursor()
-    c.execute("DELETE FROM customer_experience")
-    c.execute("DELETE FROM customer_experience_notes")
-
-    count = 0
-    for row in range(2, 12):
-        serial_no = ws.cell(row=row, column=1).value
-        if serial_no is None or not isinstance(serial_no, (int, float)):
-            continue
-        c.execute('''INSERT INTO customer_experience
-            (serial_no, emp_id, name, art_l1_hrs, reopen_pct, nps, csat, quality,
-             productivity_w1, productivity_w2, productivity_w3, productivity_w4,
-             productivity_w5, total_tickets, avg_daily_tickets, working_days)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (
-            int(serial_no),
-            ws.cell(row=row, column=2).value,
-            safe_str(ws.cell(row=row, column=3).value),
-            safe_float(ws.cell(row=row, column=4).value),
-            safe_float(ws.cell(row=row, column=5).value),
-            safe_float(ws.cell(row=row, column=6).value),
-            safe_float(ws.cell(row=row, column=7).value),
-            safe_float(ws.cell(row=row, column=8).value),
-            safe_float(ws.cell(row=row, column=9).value),
-            safe_float(ws.cell(row=row, column=10).value),
-            safe_float(ws.cell(row=row, column=11).value),
-            safe_float(ws.cell(row=row, column=12).value),
-            safe_float(ws.cell(row=row, column=13).value),
-            safe_float(ws.cell(row=row, column=14).value),
-            safe_float(ws.cell(row=row, column=15).value),
-            safe_float(ws.cell(row=row, column=16).value),
-        ))
-        count += 1
-
-    # Notes
-    for row in [13, 14]:
-        note = safe_str(ws.cell(row=row, column=1).value)
-        if note:
-            c.execute("INSERT INTO customer_experience_notes (note) VALUES (?)", (note,))
-
-    conn.commit()
-    print(f"  Customer Experience: {count} rows imported")
-
-
-def import_ta_team(conn):
-    """Import TA Team data (from visual snapshot — Excel tab is empty)."""
-    c = conn.cursor()
-    c.execute("DELETE FROM ta_open_positions")
-    c.execute("DELETE FROM ta_leader_positions")
-    c.execute("DELETE FROM ta_partner_performance")
-
-    # Open Positions by Month
-    positions_data = [
-        ("Oct'25", 59, 25, 70, 30, 28, 72, 17),
-        ("Nov'25", 49, 31, 61, 39, 33, 67, 45),
-        ("Dec'25", 58, 41, 59, 41, 42, 58, 31),
-    ]
-    for row in positions_data:
-        c.execute('''INSERT INTO ta_open_positions
-            (month, new_count, replacement_count, new_pct, replacement_pct,
-             offered_new_pct, offered_replacement_pct, offered_from_closing)
-            VALUES (?,?,?,?,?,?,?,?)''', row)
-
-    # Leader Wise Open Positions
-    leader_data = [
-        ("Jay Roger Wardle", 5), ("Bhanu Chopra", 11), ("Rohan Mittal", 3),
-        ("Deepak Kapoor", 14), ("Ashish Sikka", 8), ("Yogeesh Chandra", 5),
-        ("Sachin Garg", 7), ("Anurag Jain", 2), ("Fiza Malick", 23),
-        ("Toby Marich", 3), ("Vinay Varma", 5), ("Mark K Rabe", 3),
-        ("Carla Shaw", 2), ("Sahil Sharma", 10), ("Pankaj Tiwari", 1),
-    ]
-    for name, positions in leader_data:
-        c.execute("INSERT INTO ta_leader_positions (leader_name, open_positions) VALUES (?,?)",
-                  (name, positions))
-
-    # TA Partner Performance
-    partner_data = [
-        ("Shruti Sinha", 40, 36, 37), ("Prateek Panjwani", 34, 27, 27),
-        ("Anjali Sharma", 32, 31, 29), ("Karnika Daniel", 28, 15, 45),
-        ("Abha Chhabra", 21, 15, 25), ("Roshni Das Jad", 16, 13, 32),
-        ("Vyas Ahuja", 16, 12, 42), ("Manpreet Anand", 13, 11, 29),
-        ("Kanika Kaushal", 9, 4, 40), ("Bridget Pederson", 4, 0, 51),
-    ]
-    for row in partner_data:
-        c.execute('''INSERT INTO ta_partner_performance
-            (ta_partner, offered, joinings, avg_time_to_offer)
-            VALUES (?,?,?,?)''', row)
-
-    conn.commit()
-    print(f"  TA Team: {len(positions_data)} position rows, {len(leader_data)} leaders, {len(partner_data)} partners imported")
-
-
+# ─────────────────────────── main ───────────────────────────
 def main():
-    print(f"Loading Excel from: {EXCEL_PATH}")
-    wb = openpyxl.load_workbook(EXCEL_PATH, data_only=True)
+    print(f"Reading {XLSX_PATH} …")
+    wb = openpyxl.load_workbook(XLSX_PATH, data_only=True)
 
-    print(f"Creating database at: {DB_PATH}")
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-
+    print(f"Connecting to {DB_PATH} …")
     conn = sqlite3.connect(DB_PATH)
-    create_tables(conn)
+    cur = conn.cursor()
 
-    print("\nImporting data...")
-    import_cost_summary(wb, conn)
-    import_dadk_pivot(wb, conn)
-    import_productivity_emp(wb, conn)
-    import_adara_devops(wb, conn)
-    import_devops_shared(wb, conn)
-    import_it_helpdesk(wb, conn)
-    import_soho(wb, conn)
-    import_customer_experience(wb, conn)
-    import_ta_team(conn)
+    # Drop old WFM tables + drop any prior revenue tables so we start clean
+    print("Dropping old tables …")
+    for t in OLD_TABLES + ["revenue_hcr", "revenue_team", "revenue_meta",
+                           "account_analysis", "leader_perf_pivot"]:
+        cur.execute(f"DROP TABLE IF EXISTS {t}")
 
+    # Create fresh schema
+    print("Creating new schema …")
+    cur.execute(DDL_HCR)
+    cur.execute(DDL_TEAM)
+    cur.execute(DDL_META)
+    cur.execute(DDL_ACCOUNTS)
+    cur.execute(DDL_LEADER_PERF)
+
+    # Index helpers
+    cur.execute("CREATE INDEX idx_team_manager ON revenue_team(manager_tab)")
+    cur.execute("CREATE INDEX idx_team_status ON revenue_team(status)")
+    cur.execute("CREATE INDEX idx_hcr_status ON revenue_hcr(status)")
+    cur.execute("CREATE INDEX idx_hcr_manager ON revenue_hcr(manager_name)")
+
+    # Import HCR
+    print("\nImporting Revenue HCR …")
+    if "Revenue HCR" not in wb.sheetnames:
+        raise RuntimeError("Sheet 'Revenue HCR' not found")
+    import_hcr(wb["Revenue HCR"], conn)
+
+    # Import each manager tab
+    print("\nImporting manager tabs …")
+    for tab in MANAGER_TABS:
+        if tab not in wb.sheetnames:
+            print(f"  ⚠ Sheet '{tab}' not found, skipping.")
+            continue
+        import_manager(wb[tab], tab, conn)
+
+    # Import GRR/NRR account-level analysis
+    print("\nImporting account-level GRR/NRR analysis …")
+    import_account_analysis(conn)
+
+    cur.execute("CREATE INDEX idx_acc_am ON account_analysis(am)")
+    cur.execute("CREATE INDEX idx_acc_product ON account_analysis(product)")
+
+    # Import leader-pivot (drives Leaderboard view)
+    print("\nImporting leader performance pivot …")
+    import_leader_perf(conn)
+    cur.execute("CREATE INDEX idx_lp_leader ON leader_perf_pivot(leader)")
+    cur.execute("CREATE INDEX idx_lp_total ON leader_perf_pivot(is_leader_total)")
+
+    cur.execute(
+        "INSERT OR REPLACE INTO revenue_meta(key, value) VALUES (?, ?)",
+        ("last_loaded_at", dt.datetime.now().isoformat(timespec="seconds")),
+    )
+    cur.execute(
+        "INSERT OR REPLACE INTO revenue_meta(key, value) VALUES (?, ?)",
+        ("source_file", os.path.basename(XLSX_PATH)),
+    )
+
+    conn.commit()
     conn.close()
-    print("\n✅ Data import complete! Database saved to:", DB_PATH)
+    print("\n✅ Import complete.")
 
 
 if __name__ == "__main__":

@@ -3,354 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | WFM Report — RateGain</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <title>Sign in · Revenue Report | RateGain</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --rg-vivid: #8012FF;
-            --rg-navy: #242452;
-            --rg-dark-purple: #4B139B;
-            --rg-bg: #0c0e24;
-            --rg-surface: #121436;
-            --rg-surface-2: #181b42;
-            --rg-surface-3: #1e2252;
-            --rg-border: rgba(128,18,255,0.20);
-            --rg-border-light: rgba(128,18,255,0.30);
+            --rg-bg: #14152a;
+            --rg-surface: #1c1e3a;
+            --rg-surface-2: #24264a;
+            --rg-border: rgba(140,120,220,0.18);
+            --rg-border-light: rgba(140,120,220,0.32);
             --rg-purple: #8012FF;
-            --rg-purple-light: #c9a0ff;
-            --rg-text: #FFFFFF;
-            --rg-text-secondary: #dcdcf0;
-            --rg-text-muted: #a0a0c0;
-            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #4B139B 100%);
+            --rg-purple-light: #d4b8ff;
+            --rg-text: #f0f0f8;
+            --rg-text-muted: #8e8eaf;
+            --rg-gradient: linear-gradient(135deg, #8012FF 0%, #5C2DB8 100%);
             --rg-gradient-accent: linear-gradient(135deg, #8012FF 0%, #33ADFF 100%);
-            --rg-coral: #FF675F;
-            --rg-green: #00EF61;
-            --glow-purple: 0 0 20px rgba(128,18,255,0.18);
         }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--rg-bg);
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
             color: var(--rg-text);
-            min-height: 100vh;
+            background: radial-gradient(ellipse at top, #1d1e42 0%, var(--rg-bg) 60%);
+        }
+        body {
             display: flex;
             align-items: center;
             justify-content: center;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow: hidden;
+            padding: 24px;
         }
 
-        /* Animated background */
-        .bg-animation {
+        /* Decorative glow blobs */
+        body::before, body::after {
+            content: '';
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 0;
-            overflow: hidden;
-        }
-        .bg-animation .orb {
-            position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.12;
-            animation: float 20s ease-in-out infinite;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none;
         }
-        .bg-animation .orb:nth-child(1) {
-            width: 500px; height: 500px;
-            background: var(--rg-vivid);
-            top: -10%; left: -5%;
-            animation-duration: 22s;
+        body::before {
+            top: -120px; left: -120px;
+            width: 360px; height: 360px;
+            background: rgba(128,18,255,0.35);
         }
-        .bg-animation .orb:nth-child(2) {
-            width: 400px; height: 400px;
-            background: #33ADFF;
-            bottom: -10%; right: -5%;
-            animation-duration: 18s;
-            animation-delay: -5s;
-        }
-        .bg-animation .orb:nth-child(3) {
-            width: 300px; height: 300px;
-            background: var(--rg-dark-purple);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            animation-duration: 25s;
-            animation-delay: -10s;
-        }
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(30px, -30px) scale(1.05); }
-            50% { transform: translate(-20px, 20px) scale(0.95); }
-            75% { transform: translate(15px, 10px) scale(1.02); }
+        body::after {
+            bottom: -160px; right: -160px;
+            width: 420px; height: 420px;
+            background: rgba(51,173,255,0.22);
         }
 
-        .login-container {
+        .card {
             position: relative;
             z-index: 1;
             width: 100%;
             max-width: 420px;
-            padding: 20px;
-        }
-
-        .login-card {
             background: var(--rg-surface);
-            border: 1.5px solid var(--rg-border-light);
-            border-radius: 20px;
-            padding: 44px 36px 36px;
-            box-shadow: 0 8px 60px rgba(0,0,0,0.5), var(--glow-purple);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--rg-border-light);
+            border-radius: 18px;
+            padding: 36px 34px 30px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(128,18,255,0.10);
         }
 
-        /* Logo & Branding */
-        .login-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        .login-header img {
-            height: 44px;
-            margin-bottom: 16px;
-            filter: drop-shadow(0 2px 8px rgba(128,18,255,0.3));
-        }
-        .login-header h1 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--rg-text);
-            margin-bottom: 4px;
-            letter-spacing: 0.3px;
-        }
-        .login-header p {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--rg-purple-light);
-            letter-spacing: 0.2px;
-        }
-
-        /* Form */
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--rg-text-secondary);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-        .input-wrapper {
-            position: relative;
-        }
-        .input-wrapper i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--rg-text-muted);
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-        .input-wrapper input {
-            width: 100%;
-            padding: 12px 14px 12px 42px;
-            background: var(--rg-surface-2);
-            border: 1.5px solid var(--rg-border);
-            border-radius: 10px;
-            color: var(--rg-text);
-            font-family: 'Manrope', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-        .input-wrapper input::placeholder {
-            color: var(--rg-text-muted);
-            font-weight: 400;
-        }
-        .input-wrapper input:focus {
-            border-color: var(--rg-vivid);
-            box-shadow: 0 0 0 3px rgba(128,18,255,0.15);
-        }
-        .input-wrapper input:focus + i,
-        .input-wrapper input:focus ~ i {
-            color: var(--rg-vivid);
-        }
-
-        /* Password toggle */
-        .toggle-password {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--rg-text-muted);
-            cursor: pointer;
-            font-size: 14px;
-            padding: 4px;
-            transition: color 0.2s;
-        }
-        .toggle-password:hover {
-            color: var(--rg-purple-light);
-        }
-
-        /* Submit button */
-        .btn-login {
-            width: 100%;
-            padding: 13px 20px;
-            background: var(--rg-gradient);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Manrope', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            margin-top: 6px;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-login:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 30px rgba(128,18,255,0.4);
-        }
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        .btn-login .spinner {
-            display: none;
-            width: 18px; height: 18px;
-            border: 2.5px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        .btn-login.loading .spinner { display: inline-block; }
-        .btn-login.loading .btn-text { opacity: 0.7; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Error message */
-        .error-msg {
-            background: rgba(255,103,95,0.12);
-            border: 1px solid rgba(255,103,95,0.25);
-            color: var(--rg-coral);
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 20px;
+        .brand {
             display: flex;
             align-items: center;
-            gap: 8px;
-            animation: shake 0.4s ease;
+            gap: 12px;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--rg-border);
         }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-4px); }
-            80% { transform: translateX(4px); }
+        .brand img { height: 30px; }
+        .brand .divider { width: 1px; height: 26px; background: var(--rg-border-light); }
+        .brand .titles h1 {
+            margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.3px;
+        }
+        .brand .titles p {
+            margin: 2px 0 0;
+            color: var(--rg-purple-light);
+            font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
         }
 
-        /* Footer */
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
+        .lead {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            margin: 6px 0 4px;
+            letter-spacing: 0.2px;
+        }
+        .sub {
+            font-size: 12.5px;
+            color: var(--rg-text-muted);
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        .field { position: relative; margin-bottom: 14px; }
+        label {
+            display: block;
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--rg-text-muted);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            background: var(--rg-surface-2);
+            border: 1px solid var(--rg-border-light);
+            color: var(--rg-text);
+            padding: 12px 44px 12px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            letter-spacing: 0.4px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--rg-purple);
+            box-shadow: 0 0 0 3px rgba(128,18,255,0.20);
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            color: var(--rg-text-muted);
+            font-weight: 700;
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        .toggle-pw:hover { color: var(--rg-purple-light); background: rgba(128,18,255,0.10); }
+
+        .error {
+            background: rgba(255,103,95,0.12);
+            border: 1px solid rgba(255,103,95,0.40);
+            color: #ff9a93;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        button.signin {
+            width: 100%;
+            padding: 12px 16px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--rg-gradient-accent);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 8px 22px rgba(128,18,255,0.30);
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        button.signin:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(51,173,255,0.40); }
+        button.signin:active { transform: translateY(0); }
+
+        .foot {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--rg-border);
             font-size: 11px;
             color: var(--rg-text-muted);
-            letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1.55;
         }
-        .login-footer i {
-            color: var(--rg-vivid);
-            margin: 0 3px;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-card { padding: 32px 24px 28px; }
-            .login-header h1 { font-size: 20px; }
-        }
+        .foot strong { color: var(--rg-purple-light); font-weight: 700; }
     </style>
 </head>
 <body>
-
-<div class="bg-animation">
-    <div class="orb"></div>
-    <div class="orb"></div>
-    <div class="orb"></div>
-</div>
-
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-header">
+    <div class="card">
+        <div class="brand">
             <img src="{{ url_for('static', filename='img/RateGain-Logo.jpg') }}" alt="RateGain">
-            <h1>WFM Report</h1>
-            <p>H1 FY26 & Q3'26</p>
+            <div class="divider"></div>
+            <div class="titles">
+                <h1>Revenue Report</h1>
+                <p>FY 2025-26 · Confidential</p>
+            </div>
         </div>
+
+        <div class="lead">Welcome back</div>
+        <div class="sub">Enter the access password to view the FY 25-26 Revenue Performance dashboard. This view contains confidential headcount, salary, sales and account-level data.</div>
 
         {% if error %}
-        <div class="error-msg">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ error }}
-        </div>
+        <div class="error">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
-            <div class="form-group">
-                <label>Username</label>
-                <div class="input-wrapper">
-                    <input type="text" name="username" placeholder="Enter your username" required autocomplete="username" autofocus>
-                    <i class="fas fa-user"></i>
-                </div>
+        <form method="POST" autocomplete="off">
+            <div class="field">
+                <label for="password">Access password</label>
+                <input id="password" name="password" type="password" required autofocus placeholder="Enter password">
+                <button type="button" class="toggle-pw" id="togglePw" aria-label="Show password">Show</button>
             </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <div class="input-wrapper">
-                    <input type="password" name="password" id="passwordInput" placeholder="Enter your password" required autocomplete="current-password">
-                    <i class="fas fa-lock"></i>
-                    <button type="button" class="toggle-password" onclick="togglePassword()">
-                        <i class="fas fa-eye" id="toggleIcon"></i>
-                    </button>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-login" id="loginBtn">
-                <span class="spinner"></span>
-                <span class="btn-text"><i class="fas fa-sign-in-alt me-1"></i> Sign In</span>
-            </button>
+            <button class="signin" type="submit">Sign in</button>
         </form>
 
-        <div class="login-footer">
-            <i class="fas fa-shield-halved"></i> Secured Access &mdash; RateGain Internal
+        <div class="foot">
+            For access, contact <strong>HR Analytics</strong>. Sessions stay active until you close the browser or click <strong>Sign out</strong>.
         </div>
     </div>
-</div>
 
-<script>
-function togglePassword() {
-    const input = document.getElementById('passwordInput');
-    const icon = document.getElementById('toggleIcon');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-}
-
-document.getElementById('loginForm').addEventListener('submit', function() {
-    document.getElementById('loginBtn').classList.add('loading');
-});
-</script>
-
+    <script>
+        const pw = document.getElementById('password');
+        const tg = document.getElementById('togglePw');
+        tg.addEventListener('click', () => {
+            const isPw = pw.type === 'password';
+            pw.type = isPw ? 'text' : 'password';
+            tg.textContent = isPw ? 'Hide' : 'Show';
+        });
+    </script>
 </body>
 </html>
