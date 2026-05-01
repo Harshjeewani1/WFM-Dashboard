@@ -10,6 +10,7 @@ import os
 import sqlite3
 from datetime import datetime
 from functools import wraps
+from urllib.parse import unquote
 from flask import Flask, render_template, jsonify, request, send_file, session, redirect, url_for
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
@@ -245,6 +246,7 @@ def api_hcr_summary():
 @app.route("/api/team/<path:manager>")
 def api_team(manager: str):
     """All rows for a given manager tab (in original order)."""
+    manager = unquote(manager)  # Vercel routing may pass the path URL-encoded
     if manager not in MANAGER_TABS:
         return jsonify({"error": f"Unknown manager '{manager}'"}), 404
 
@@ -273,6 +275,7 @@ def api_team(manager: str):
 @app.route("/api/team/<path:manager>/summary")
 def api_team_summary(manager: str):
     """KPI summary for a manager tab — pulled directly from the Grand Total row."""
+    manager = unquote(manager)
     if manager not in MANAGER_TABS:
         return jsonify({"error": "Unknown manager"}), 404
 
@@ -350,6 +353,7 @@ def api_team_summary(manager: str):
 @app.route("/api/download/<path:manager>")
 def api_download(manager: str):
     """Generate an .xlsx export of a leader's full team performance + Q4 commentary."""
+    manager = unquote(manager)
     if manager not in MANAGER_TABS:
         return jsonify({"error": f"Unknown leader '{manager}'"}), 404
 
