@@ -1859,12 +1859,18 @@ async function loadManagerTab(pane) {
     if (tbody) tbody.innerHTML = `<tr><td colspan="19"><div class="table-loading"><span class="spinner"></span>Loading ${escapeHtml(manager)} data…</div></td></tr>`;
 
     try {
-    const [rows, summary] = await Promise.all([
-        fetch(`/api/team/${encodeURIComponent(manager)}`).then(r => r.json()),
-        fetch(`/api/team/${encodeURIComponent(manager)}/summary`).then(r => r.json()),
-    ]);
-    pane._rows = rows;
-    pane._summary = summary;
+        const [rRows, rSum] = await Promise.all([
+            fetch(`/api/team/${encodeURIComponent(manager)}`),
+            fetch(`/api/team/${encodeURIComponent(manager)}/summary`),
+        ]);
+        if (rRows.status === 401 || rSum.status === 401) {
+            window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        if (!rRows.ok) throw new Error(`API ${rRows.status} on /api/team — ${await rRows.text()}`.slice(0, 200));
+        if (!rSum.ok)  throw new Error(`API ${rSum.status} on /api/team/summary — ${await rSum.text()}`.slice(0, 200));
+        pane._rows    = await rRows.json();
+        pane._summary = await rSum.json();
     } catch (e) {
         if (tbody) tbody.innerHTML = `<tr><td colspan="19"><div class="table-empty"><span class="big">Failed to load data</span>${escapeHtml(e.message || 'Try refreshing the page.')}</div></td></tr>`;
         return;
@@ -2660,8 +2666,13 @@ async function loadLeaderboardPane(pane) {
     if (!mount) return;
     mount.innerHTML = `<div class="table-loading"><span class="spinner"></span>Building leaderboard…</div>`;
     try {
-        const data = await fetch('/api/leaderboard').then(r => r.json());
-        renderLeaderboardPane(mount, data);
+        const r = await fetch('/api/leaderboard');
+        if (r.status === 401) {
+            window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        if (!r.ok) throw new Error(`API ${r.status} — ${(await r.text()).slice(0, 200)}`);
+        renderLeaderboardPane(mount, await r.json());
     } catch (e) {
         mount.innerHTML = `<div class="table-empty"><span class="big">Failed to load leaderboard</span>${escapeHtml(e.message || '')}</div>`;
     }
@@ -2783,8 +2794,13 @@ async function loadGrrNrrPane(pane) {
     if (!mount) return;
     mount.innerHTML = `<div class="table-loading"><span class="spinner"></span>Crunching account-level data…</div>`;
     try {
-        const data = await fetch('/api/grrnrr').then(r => r.json());
-        renderGrrNrrPane(mount, data);
+        const r = await fetch('/api/grrnrr');
+        if (r.status === 401) {
+            window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        if (!r.ok) throw new Error(`API ${r.status} — ${(await r.text()).slice(0, 200)}`);
+        renderGrrNrrPane(mount, await r.json());
     } catch (e) {
         mount.innerHTML = `<div class="table-empty"><span class="big">Failed to load account analysis</span>${escapeHtml(e.message || '')}</div>`;
     }

@@ -35,10 +35,38 @@ def login_required(f):
 
 @app.before_request
 def gate():
-    """Require password for everything except the login flow + static assets."""
+    """Require password for everything except the login flow + static assets.
+    For unauthenticated /api/* calls, return JSON 401 so the JS can display a
+    clean error instead of silently following a 302 redirect to HTML.
+    """
     if request.endpoint in ("login", "logout", "static") or session.get("authed"):
         return
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Not authenticated", "login_url": url_for("login")}), 401
     return redirect(url_for("login", next=request.path))
+
+
+@app.route("/api/health")
+def api_health():
+    """Diagnostics — confirms DB is readable from the Flask runtime."""
+    info = {"db_path": DB_PATH, "db_exists": os.path.exists(DB_PATH)}
+    if info["db_exists"]:
+        info["db_size"] = os.path.getsize(DB_PATH)
+        try:
+            conn = get_db()
+            cur  = conn.cursor()
+            info["revenue_team_rows"]   = cur.execute("SELECT COUNT(*) FROM revenue_team").fetchone()[0]
+            info["revenue_hcr_rows"]    = cur.execute("SELECT COUNT(*) FROM revenue_hcr").fetchone()[0]
+            info["leader_perf_rows"]    = cur.execute("SELECT COUNT(*) FROM leader_perf_pivot").fetchone()[0]
+            info["account_analysis"]    = cur.execute("SELECT COUNT(*) FROM account_analysis").fetchone()[0]
+            conn.close()
+            info["status"] = "ok"
+        except Exception as e:
+            info["status"] = "db_error"
+            info["error"]  = str(e)
+    else:
+        info["status"] = "db_missing"
+    return jsonify(info)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -71,7 +99,15 @@ MANAGER_TABS = [
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    """Open SQLite in read-only mode via URI so Vercel's read-only filesystem
+    won't trigger a journal-file write attempt (which silently hangs).
+    Falls back to a normal connection in dev if the URI form isn't supported.
+    """
+    try:
+        # Use the URI form so we can pass mode=ro explicitly
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=5)
+    except sqlite3.OperationalError:
+        conn = sqlite3.connect(DB_PATH, timeout=5)
     conn.row_factory = sqlite3.Row
     return conn
 
